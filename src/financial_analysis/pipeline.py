@@ -310,17 +310,25 @@ def load(settings: Settings, tickers: Iterable[str], run_id: uuid.UUID | None = 
                 ).returning(Filing.id)
                 filing_ids[(ticker, values["accession_number"])] = session.execute(statement).scalar_one()
 
+        fact_insert = insert(FinancialFact).on_conflict_do_nothing(
+            index_elements=[FinancialFact.natural_key_hash]
+        )
+        fact_batch_size = 500
         for ticker in selected_tickers:
             facts_path = settings.staged_data_dir / f"{ticker.lower()}_facts.jsonl"
+            fact_batch: list[dict[str, Any]] = []
             with facts_path.open(encoding="utf-8") as stream:
                 for line in stream:
                     values = _load_fact_line(line)
                     values["company_id"] = companies[ticker].id
                     values["filing_id"] = filing_ids.get((ticker, values["accession_number"]))
                     values["natural_key_hash"] = _fact_natural_key(companies[ticker].id, values)
-                    statement = insert(FinancialFact).values(**values)
-                    statement = statement.on_conflict_do_nothing(index_elements=[FinancialFact.natural_key_hash])
-                    session.execute(statement)
+                    fact_batch.append(values)
+                    if len(fact_batch) >= fact_batch_size:
+                        session.execute(fact_insert, fact_batch)
+                        fact_batch.clear()
+            if fact_batch:
+                session.execute(fact_insert, fact_batch)
         run.status = "loaded"
     return run_id
 
