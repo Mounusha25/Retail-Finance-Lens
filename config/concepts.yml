@@ -65,11 +65,15 @@ concepts:
     period_type: instant
     aliases:
       - {taxonomy: us-gaap, concept: AccountsPayableCurrent, priority: 10}
-  current_debt:
+  short_term_borrowings:
     period_type: instant
     aliases:
       - {taxonomy: us-gaap, concept: ShortTermBorrowings, priority: 10}
-      - {taxonomy: us-gaap, concept: LongTermDebtCurrent, priority: 20}
+  current_debt:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: LongTermDebtCurrent, priority: 10}
+      - {taxonomy: us-gaap, concept: LongTermDebtAndCapitalLeaseObligationsCurrent, priority: 20}
       - {taxonomy: us-gaap, concept: ShortTermBorrowingsAndCurrentMaturitiesOfLongTermDebt, priority: 30}
   current_liabilities:
     period_type: instant
@@ -80,6 +84,7 @@ concepts:
     aliases:
       - {taxonomy: us-gaap, concept: LongTermDebtNoncurrent, priority: 10}
       - {taxonomy: us-gaap, concept: LongTermDebtAndFinanceLeaseObligationsNoncurrent, priority: 20}
+      - {taxonomy: us-gaap, concept: LongTermDebtAndCapitalLeaseObligations, priority: 30}
   total_assets:
     period_type: instant
     aliases:
@@ -92,6 +97,14 @@ concepts:
     period_type: instant
     aliases:
       - {taxonomy: us-gaap, concept: LiabilitiesAndStockholdersEquity, priority: 10}
+  stockholders_equity:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: StockholdersEquity, priority: 10}
+  income_tax_expense:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: IncomeTaxExpenseBenefit, priority: 10}
   total_equity:
     period_type: instant
     aliases:

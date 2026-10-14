@@ -43,6 +43,21 @@ def _five_year_change(company: pd.DataFrame) -> tuple[pd.Series, pd.Series, floa
     return first, latest, cagr
 
 
+def _returns_paragraph(peer: pd.DataFrame) -> str:
+    needed = ["roic", "return_on_equity", "net_margin", "asset_turnover", "equity_multiplier"]
+    valid = peer.dropna(subset=needed)
+    if valid.empty:
+        return "Return metrics are unavailable because the required balance-sheet facts are missing."
+    ordered = valid.sort_values("roic", ascending=False)
+    parts = [
+        f"{row['ticker']} earned a {_percent(row['roic'])} ROIC and {_percent(row['return_on_equity'])} return on equity "
+        f"({_percent(row['net_margin'])} net margin × {_number(row['asset_turnover'], '×')} asset turnover × "
+        f"{_number(row['equity_multiplier'], '×')} equity multiplier)"
+        for _, row in ordered.iterrows()
+    ]
+    return "; ".join(parts) + "."
+
+
 def generate_report(settings: Settings, output: Path | None = None) -> Path:
     output = output or PROJECT_ROOT / "reports" / "v1_findings.md"
     with make_engine(settings.database_url).connect() as connection:
@@ -189,6 +204,17 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             "**Implication.** One year of strong conversion is supportive, not conclusive. Cash conversion can be temporarily lifted by "
             "inventory reductions, supplier timing, or tax and compensation accruals. The quarterly cash-flow bridge should therefore "
             "be monitored alongside the five-year trend before concluding that the latest conversion rate is sustainable."
+        ),
+        "",
+        "### 5. Returns differ because of capital intensity and leverage, not only margin",
+        "",
+        _returns_paragraph(peer),
+        "",
+        (
+            "**Implication.** ROIC isolates what the operating business earns on debt plus equity, while the DuPont split shows whether "
+            "return on equity comes from margin, asset productivity, or balance-sheet leverage. A high ROE supported mainly by a larger "
+            "equity multiplier deserves more scrutiny than one supported by margin or turnover. Invested capital here excludes operating "
+            "leases, which understates the capital base of the store-heavy peers."
         ),
         "",
         "---",

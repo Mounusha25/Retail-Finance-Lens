@@ -1,5 +1,11 @@
 CREATE SCHEMA IF NOT EXISTS analytics;
 
+-- Views are dropped first because CREATE OR REPLACE VIEW cannot add or reorder columns.
+DROP VIEW IF EXISTS analytics.v_peer_comparison;
+DROP VIEW IF EXISTS analytics.v_annual_metrics;
+DROP VIEW IF EXISTS analytics.v_quarterly_metrics;
+DROP VIEW IF EXISTS analytics.v_data_quality;
+
 CREATE OR REPLACE VIEW analytics.v_annual_metrics AS
 WITH ranked AS (
     SELECT
@@ -47,7 +53,12 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'current_liabilities') AS current_liabilities,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'long_term_debt_noncurrent') AS long_term_debt_noncurrent,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_cash_flow') AS operating_cash_flow,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'capital_expenditures') AS capital_expenditures
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'capital_expenditures') AS capital_expenditures,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'short_term_borrowings') AS short_term_borrowings,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_assets') AS total_assets,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'stockholders_equity') AS stockholders_equity,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_equity') AS total_equity,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'income_tax_expense') AS income_tax_expense
     FROM annual_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -55,6 +66,13 @@ WITH ranked AS (
      AND r.period_end = p.period_end
      AND r.version_rank = 1
     GROUP BY c.id, c.ticker, c.name, p.period_end
+), capital AS (
+    SELECT
+        *,
+        current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0) AS total_debt,
+        current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0)
+          + total_equity - cash_and_cash_equivalents AS invested_capital
+    FROM pivoted
 ), with_revenue AS (
     SELECT
         *,
@@ -64,8 +82,16 @@ WITH ranked AS (
         lag(net_sales) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_net_sales,
         lag(inventory) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_inventory,
         lag(accounts_receivable_net_current) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_receivables,
-        lag(accounts_payable_current) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_accounts_payable
-    FROM pivoted
+        lag(accounts_payable_current) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_accounts_payable,
+        lag(invested_capital) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_invested_capital,
+        lag(total_assets) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_total_assets,
+        lag(stockholders_equity) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_stockholders_equity
+    FROM capital
+), returns AS (
+    SELECT
+        *,
+        income_tax_expense / NULLIF(net_income + income_tax_expense, 0) AS effective_tax_rate
+    FROM with_revenue
 )
 SELECT
     *,
@@ -89,8 +115,14 @@ SELECT
     current_assets / NULLIF(current_liabilities, 0) AS current_ratio,
     (cash_and_cash_equivalents + short_term_investments + accounts_receivable_net_current)
       / NULLIF(current_liabilities, 0) AS quick_ratio,
-    current_debt + long_term_debt_noncurrent AS total_debt
-FROM with_revenue;
+    operating_income * (1 - effective_tax_rate) AS nopat,
+    operating_income * (1 - effective_tax_rate)
+      / NULLIF((invested_capital + prior_invested_capital) / 2, 0) AS roic,
+    net_income / NULLIF((stockholders_equity + prior_stockholders_equity) / 2, 0) AS return_on_equity,
+    total_revenue / NULLIF((total_assets + prior_total_assets) / 2, 0) AS asset_turnover,
+    ((total_assets + prior_total_assets) / 2)
+      / NULLIF((stockholders_equity + prior_stockholders_equity) / 2, 0) AS equity_multiplier
+FROM returns;
 
 CREATE OR REPLACE VIEW analytics.v_quarterly_metrics AS
 WITH ranked AS (
@@ -140,7 +172,12 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'current_liabilities') AS current_liabilities,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'long_term_debt_noncurrent') AS long_term_debt_noncurrent,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_cash_flow') AS operating_cash_flow,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'capital_expenditures') AS capital_expenditures
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'capital_expenditures') AS capital_expenditures,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'short_term_borrowings') AS short_term_borrowings,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_assets') AS total_assets,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'stockholders_equity') AS stockholders_equity,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_equity') AS total_equity,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'income_tax_expense') AS income_tax_expense
     FROM quarter_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -179,7 +216,7 @@ SELECT
     current_assets / NULLIF(current_liabilities, 0) AS current_ratio,
     (cash_and_cash_equivalents + short_term_investments + accounts_receivable_net_current)
       / NULLIF(current_liabilities, 0) AS quick_ratio,
-    current_debt + long_term_debt_noncurrent AS total_debt
+    current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0) AS total_debt
 FROM lagged;
 
 CREATE OR REPLACE VIEW analytics.v_peer_comparison AS

@@ -21,6 +21,8 @@ FACTS = {
     YEAR_1: {
         "net_sales": 1000, "membership_other_revenue": 100, "cost_of_sales": 800,
         "inventory": 100, "accounts_receivable_net_current": 50, "accounts_payable_current": 80,
+        "current_debt": 10, "long_term_debt_noncurrent": 40, "cash_and_cash_equivalents": 40,
+        "total_assets": 600, "total_equity": 200, "stockholders_equity": 190,
     },
     YEAR_2: {
         "net_sales": 1100, "membership_other_revenue": 100, "cost_of_sales": 880,
@@ -29,12 +31,14 @@ FACTS = {
         "operating_cash_flow": 90, "capital_expenditures": 30,
         "current_assets": 300, "current_liabilities": 200,
         "cash_and_cash_equivalents": 50, "short_term_investments": 25,
-        "current_debt": 10, "long_term_debt_noncurrent": 40,
+        "current_debt": 10, "long_term_debt_noncurrent": 40, "short_term_borrowings": 5,
+        "total_assets": 700, "total_equity": 220, "stockholders_equity": 210,
+        "income_tax_expense": 15,
     },
 }
 DURATION = {
     "net_sales", "membership_other_revenue", "cost_of_sales", "operating_income",
-    "net_income", "operating_cash_flow", "capital_expenditures",
+    "net_income", "operating_cash_flow", "capital_expenditures", "income_tax_expense",
 }
 FISCAL_DAYS = {YEAR_1: 366, YEAR_2: 365}
 
@@ -126,7 +130,7 @@ def test_annual_metrics_match_hand_calculation(seeded):
     assert row["inventory_growth_gap"] == pytest.approx(0.10)
     assert row["current_ratio"] == pytest.approx(1.5)
     assert row["quick_ratio"] == pytest.approx((50 + 25 + 60) / 200)
-    assert row["total_debt"] == 50
+    assert row["total_debt"] == 55  # current 10 + long-term 40 + short-term borrowings 5
 
 
 def test_first_period_has_no_growth_or_average_balance_metrics(seeded):
@@ -146,3 +150,31 @@ def test_missing_short_term_investments_is_not_zero_filled(seeded):
     assert row["short_term_investments"] is None
     assert row["quick_ratio"] is None
     assert row["current_ratio"] == pytest.approx(1.5)
+
+
+def test_roic_and_dupont_decomposition(seeded):
+    row = _latest(seeded, "ZZA")
+    # Invested capital = total debt + total equity - cash, averaged with the prior year.
+    prior_ic = 10 + 40 + 200 - 40
+    current_ic = 10 + 40 + 5 + 220 - 50
+    tax_rate = 15 / (40 + 15)
+    assert row["effective_tax_rate"] == pytest.approx(tax_rate)
+    assert row["invested_capital"] == current_ic
+    assert row["nopat"] == pytest.approx(60 * (1 - tax_rate))
+    assert row["roic"] == pytest.approx(60 * (1 - tax_rate) / ((prior_ic + current_ic) / 2))
+    assert row["return_on_equity"] == pytest.approx(40 / ((190 + 210) / 2))
+    assert row["asset_turnover"] == pytest.approx(1200 / ((600 + 700) / 2))
+    assert row["equity_multiplier"] == pytest.approx(((600 + 700) / 2) / ((190 + 210) / 2))
+    # DuPont identity: margin x turnover x leverage reproduces ROE exactly.
+    assert row["net_margin"] * row["asset_turnover"] * row["equity_multiplier"] == pytest.approx(
+        row["return_on_equity"]
+    )
+
+
+def test_returns_are_null_without_prior_period(seeded):
+    row = seeded.execute(
+        text("SELECT * FROM analytics.v_annual_metrics WHERE ticker = 'ZZA' AND period_end = :d"),
+        {"d": YEAR_1},
+    ).mappings().one()
+    assert row["roic"] is None
+    assert row["return_on_equity"] is None

@@ -52,6 +52,12 @@ OCF/net income was 1.7× for Costco, 1.8× for Target, and 1.9× for Walmart. Ea
 
 **Implication.** One year of strong conversion is supportive, not conclusive. Cash conversion can be temporarily lifted by inventory reductions, supplier timing, or tax and compensation accruals. The quarterly cash-flow bridge should therefore be monitored alongside the five-year trend before concluding that the latest conversion rate is sustainable.
 
+### 5. Returns differ because of capital intensity and leverage, not only margin
+
+COST earned a 41.4% ROIC and 28.4% return on equity (3.0% net margin × 3.6× asset turnover × 2.6× equity multiplier); WMT earned a 16.8% ROIC and 23.0% return on equity (3.1% net margin × 2.6× asset turnover × 2.9× equity multiplier); TGT earned a 15.0% ROIC and 24.0% return on equity (3.5% net margin × 1.8× asset turnover × 3.8× equity multiplier).
+
+**Implication.** ROIC isolates what the operating business earns on debt plus equity, while the DuPont split shows whether return on equity comes from margin, asset productivity, or balance-sheet leverage. A high ROE supported mainly by a larger equity multiplier deserves more scrutiny than one supported by margin or turnover. Invested capital here excludes operating leases, which understates the capital base of the store-heavy peers.
+
 ---
 
 ## Five-year direction

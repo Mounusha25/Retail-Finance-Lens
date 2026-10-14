@@ -4,7 +4,7 @@ An auditable financial-analysis portfolio project comparing Walmart, Target, and
 
 > Which retailers are growing profitably, how efficiently are they managing inventory, and is their profit translating into cash?
 
-The repository contains the data pipeline, PostgreSQL analytical model, validation checks, six-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
+The repository contains the data pipeline, PostgreSQL analytical model, validation checks, seven-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
 
 ![Architecture overview](docs/assets/architecture.svg)
 
@@ -99,9 +99,10 @@ See [data dictionary](docs/data_dictionary.md) for all facts and formulas.
 1. **Executive overview** — direct latest-period comparison and caveats.
 2. **Peer comparison** — five-year growth, margin, liquidity, and cash trends.
 3. **Inventory & working capital** — DIO, payable days, growth gaps, and cash conversion cycle.
-4. **Company trends** — five annual periods or twelve quarters with filing lineage.
-5. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
-6. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
+4. **Returns & DuPont** — ROIC, return on equity, and the margin × turnover × leverage decomposition.
+5. **Company trends** — five annual periods or twelve quarters with filing lineage.
+6. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
+7. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
 
 The app reads only `analytics.v_annual_metrics`, `analytics.v_quarterly_metrics`, `analytics.v_peer_comparison`, and `analytics.v_data_quality`. Financial formulas do not live in dashboard code.
 

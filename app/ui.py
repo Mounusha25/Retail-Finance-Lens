@@ -41,6 +41,7 @@ BRAND_THEMES = {
 PERCENT_METRICS = {
     "revenue_growth", "gross_margin", "operating_margin", "net_margin",
     "inventory_growth", "inventory_growth_gap",
+    "roic", "return_on_equity", "effective_tax_rate", "nopat_margin",
 }
 
 CURRENCY_METRICS = {
@@ -69,6 +70,11 @@ LABELS = {
     "total_revenue": "Total revenue",
     "operating_cash_flow": "Operating cash flow",
     "inventory": "Inventory",
+    "roic": "Return on invested capital",
+    "return_on_equity": "Return on equity",
+    "asset_turnover": "Asset turnover",
+    "equity_multiplier": "Equity multiplier",
+    "effective_tax_rate": "Effective tax rate",
 }
 
 CHART_CONFIG = {"displayModeBar": False, "responsive": True, "scrollZoom": False}
@@ -201,9 +207,10 @@ def _render_sidebar() -> None:
         st.page_link("streamlit_app.py", label="Executive overview")
         st.page_link("pages/1_Peer_Comparison.py", label="Peer benchmarking")
         st.page_link("pages/2_Working_Capital.py", label="Working capital")
-        st.page_link("pages/3_Company_Trends.py", label="Company detail")
-        st.page_link("pages/4_Exploratory_Analysis.py", label="Exploratory analysis")
-        st.page_link("pages/5_Methodology_and_Data_Quality.py", label="Data quality & methods")
+        st.page_link("pages/3_Returns_and_DuPont.py", label="Returns & DuPont")
+        st.page_link("pages/4_Company_Trends.py", label="Company detail")
+        st.page_link("pages/5_Exploratory_Analysis.py", label="Exploratory analysis")
+        st.page_link("pages/6_Methodology_and_Data_Quality.py", label="Data quality & methods")
         st.markdown(
             """
             <div class="side-status">
