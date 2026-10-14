@@ -11,3 +11,5 @@ data/raw/**
 !data/raw/.gitkeep
 data/staged/**
 !data/staged/.gitkeep
+.DS_Store
+*.egg-info/

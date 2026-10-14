@@ -88,6 +88,10 @@ concepts:
     period_type: instant
     aliases:
       - {taxonomy: us-gaap, concept: Liabilities, priority: 10}
+  total_liabilities_and_equity:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: LiabilitiesAndStockholdersEquity, priority: 10}
   total_equity:
     period_type: instant
     aliases:

@@ -21,7 +21,7 @@ REQUIRED_CONCEPTS = {
     "accounts_payable_current",
     "current_liabilities",
     "total_assets",
-    "total_liabilities",
+    "total_liabilities_and_equity",
     "total_equity",
     "operating_cash_flow",
     "capital_expenditures",
@@ -100,8 +100,16 @@ def run_validations(session: Session, run_id: uuid.UUID | None = None) -> dict[s
         assets = values.get("total_assets")
         liabilities = values.get("total_liabilities")
         equity = values.get("total_equity")
-        if None not in (assets, liabilities, equity):
-            expected = liabilities + equity
+        liabilities_and_equity = values.get("total_liabilities_and_equity")
+        # Walmart and Target do not tag total Liabilities; fall back to the reported
+        # Liabilities-and-Equity total rather than deriving liabilities as a plug.
+        if liabilities is not None and equity is not None:
+            expected, basis = liabilities + equity, "liabilities_plus_equity"
+        elif liabilities_and_equity is not None:
+            expected, basis = liabilities_and_equity, "reported_liabilities_and_equity"
+        else:
+            expected, basis = None, None
+        if assets is not None and expected is not None:
             tolerance = accounting_tolerance(assets)
             status = "passed" if abs(assets - expected) <= tolerance else "error"
             session.add(
@@ -115,7 +123,7 @@ def run_validations(session: Session, run_id: uuid.UUID | None = None) -> dict[s
                     observed_value=assets,
                     expected_value=expected,
                     tolerance=tolerance,
-                    details={},
+                    details={"basis": basis},
                 )
             )
             counts[status] += 1

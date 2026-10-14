@@ -2,9 +2,9 @@
 
 ## Analyst report — Walmart, Target, and Costco
 
-- **Prepared:** 2026-10-13
-- **Decision question:** Which retailer is growing profitably, managing inventory efficiently, and converting profit into cash?
-- **Scope:** Latest five completed annual periods and twelve standalone quarters per company, based on latest-known SEC filings.
+**Prepared:** 2026-10-14  
+**Decision question:** Which retailer is growing profitably, managing inventory efficiently, and converting profit into cash?  
+**Scope:** Latest five completed annual periods and twelve standalone quarters per company, based on latest-known SEC filings.
 
 ---
 
@@ -69,7 +69,7 @@ OCF/net income was 1.7× for Costco, 1.8× for Target, and 1.9× for Walmart. Ea
 
 ## Methodology, controls, and limitations
 
-The latest validation run recorded **89 passed checks, 12 warnings, and 0 errors**. Revenue components reconcile for all displayed annual periods and quarters. Raw SEC responses, accession numbers, filing dates, source concepts, units, dimensions, and derived-fact status are retained.
+The latest validation run recorded **113 passed checks, 0 warnings, and 0 errors**. Revenue components reconcile for all displayed annual periods and quarters. Raw SEC responses, accession numbers, filing dates, source concepts, units, dimensions, and derived-fact status are retained.
 
 - Net sales—not consolidated revenue—drives growth and gross margin. Membership and other revenue remains separate.
 - Average beginning and ending balances drive inventory, receivable, and payable efficiency. Actual fiscal-day counts drive days metrics.

@@ -102,6 +102,19 @@ def _manifest_record(
     return record
 
 
+def _raw_path(settings: Settings, file_path: str) -> Path:
+    """Resolve a manifest path, remapping container paths (/app/data/raw/...) to this checkout."""
+    path = Path(file_path)
+    if path.exists():
+        return path
+    parts = path.parts
+    if "raw" in parts:
+        relocated = settings.raw_data_dir.joinpath(*parts[parts.index("raw") + 1 :])
+        if relocated.exists():
+            return relocated
+    return path
+
+
 def _latest_manifest_entries(settings: Settings) -> dict[tuple[str, str, str], dict[str, Any]]:
     manifest_path = settings.staged_data_dir / MANIFEST_NAME
     if not manifest_path.exists():
@@ -125,9 +138,9 @@ def transform(settings: Settings, tickers: Iterable[str], as_of: date | None = N
         submissions_entry = latest.get((ticker, "submissions", ""))
         if not facts_entry or not submissions_entry:
             raise FileNotFoundError(f"Raw submissions and Company Facts are required for {ticker}")
-        payload = read_gzip_json(Path(facts_entry["file_path"]))
+        payload = read_gzip_json(_raw_path(settings, facts_entry["file_path"]))
         facts = extract_company_facts(payload, ticker, COMPANIES[ticker]["cik"], registry)
-        submissions = read_gzip_json(Path(submissions_entry["file_path"]))
+        submissions = read_gzip_json(_raw_path(settings, submissions_entry["file_path"]))
         filings = parse_recent_filings(submissions, COMPANIES[ticker]["cik"])
         if as_of:
             filings = [filing for filing in filings if filing["filed_at"] <= as_of]
@@ -139,7 +152,11 @@ def transform(settings: Settings, tickers: Iterable[str], as_of: date | None = N
             filing = filing_by_accession.get(accession)
             if filing is None:
                 continue
-            with gzip.open(Path(entry["file_path"]), "rb") as stream:
+            filing_path = _raw_path(settings, entry["file_path"])
+            if not filing_path.exists():
+                LOGGER.warning("Filing document missing, skipping inline facts: %s", filing_path)
+                continue
+            with gzip.open(filing_path, "rb") as stream:
                 facts.extend(
                     extract_inline_revenue_facts(
                         stream.read(),
@@ -226,7 +243,7 @@ def _load_payloads(session: Session, settings: Settings, companies: dict[str, Co
     for item in json.loads(manifest_path.read_text(encoding="utf-8")):
         if item["ticker"] not in companies:
             continue
-        path = Path(item["file_path"])
+        path = _raw_path(settings, item["file_path"])
         if not path.exists():
             LOGGER.warning("Raw payload listed in manifest is missing: %s", path)
             continue

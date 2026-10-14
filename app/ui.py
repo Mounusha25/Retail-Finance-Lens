@@ -203,7 +203,7 @@ def _render_sidebar() -> None:
         st.page_link("pages/2_Working_Capital.py", label="Working capital")
         st.page_link("pages/3_Company_Trends.py", label="Company detail")
         st.page_link("pages/4_Exploratory_Analysis.py", label="Exploratory analysis")
-        st.page_link("pages/4_Methodology_and_Data_Quality.py", label="Data quality & methods")
+        st.page_link("pages/5_Methodology_and_Data_Quality.py", label="Data quality & methods")
         st.markdown(
             """
             <div class="side-status">
