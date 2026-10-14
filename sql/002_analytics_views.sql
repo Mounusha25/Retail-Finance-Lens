@@ -252,3 +252,15 @@ SELECT
 FROM validation_results v
 LEFT JOIN companies c ON c.id = v.company_id
 WHERE v.run_id = (SELECT run_id FROM latest_validation_run);
+
+-- Recreating views drops their grants. Re-grant read access to the dashboard role when it exists
+-- (managed hosts such as Neon create it separately), so a refresh never silently breaks the app.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'dashboard_reader') THEN
+        GRANT USAGE ON SCHEMA analytics TO dashboard_reader;
+        GRANT SELECT ON analytics.v_annual_metrics, analytics.v_quarterly_metrics,
+                        analytics.v_peer_comparison, analytics.v_data_quality TO dashboard_reader;
+    END IF;
+END
+$$;
