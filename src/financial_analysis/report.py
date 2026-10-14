@@ -76,7 +76,7 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
     target_ccc_missing = int(target_quarters["cash_conversion_cycle"].isna().sum())
 
     lines = [
-        "# RetailScope — Financial Performance & Working Capital Analytics",
+        "# Retail Finance Lens — Performance & Working Capital Analytics",
         "",
         "## Analyst report — Walmart, Target, and Costco",
         "",

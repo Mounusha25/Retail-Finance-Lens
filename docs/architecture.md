@@ -1,6 +1,6 @@
 # Architecture
 
-![RetailScope financial analytics platform architecture](assets/architecture.svg)
+![Retail Finance Lens financial analytics platform architecture](assets/architecture.svg)
 
 The platform is intentionally divided into five layers:
 

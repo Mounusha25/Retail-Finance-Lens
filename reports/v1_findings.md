@@ -1,4 +1,4 @@
-# RetailScope — Financial Performance & Working Capital Analytics
+# Retail Finance Lens — Performance & Working Capital Analytics
 
 ## Analyst report — Walmart, Target, and Costco
 

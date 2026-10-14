@@ -1,4 +1,4 @@
-# RetailScope — Financial Performance & Working Capital Analytics
+# Retail Finance Lens — Performance & Working Capital Analytics
 
 An auditable financial-analysis portfolio project comparing Walmart, Target, and Costco from SEC filings. It answers:
 
@@ -28,7 +28,7 @@ Prerequisites: Docker Compose and a real contact identity for SEC requests.
 ```bash
 cp .env.example .env
 # Edit SEC_USER_AGENT in .env, for example:
-# SEC_USER_AGENT="RetailScope your-name@domain.com"
+# SEC_USER_AGENT="RetailFinanceLens your-name@domain.com"
 
 docker compose up -d db
 docker compose --profile pipeline run --rm pipeline

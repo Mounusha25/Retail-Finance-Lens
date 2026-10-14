@@ -192,7 +192,7 @@ def _render_sidebar() -> None:
             """
             <div class="side-brand">
               <div class="brand-mark">RF</div>
-              <div><div class="brand-name">RetailScope</div><div class="brand-sub">Financial Analytics</div></div>
+              <div><div class="brand-name">Retail Finance Lens</div><div class="brand-sub">Financial Analytics</div></div>
             </div>
             <div class="nav-label">Workspace</div>
             """,
@@ -217,7 +217,7 @@ def _render_sidebar() -> None:
 
 
 def page_setup(title: str, kicker: str = "Retail intelligence", description: str | None = None) -> None:
-    st.set_page_config(page_title=f"{title} | RetailScope", page_icon="◆", layout="wide", initial_sidebar_state="auto")
+    st.set_page_config(page_title=f"{title} | Retail Finance Lens", page_icon="◆", layout="wide", initial_sidebar_state="auto")
     st.markdown(APP_CSS, unsafe_allow_html=True)
     _render_sidebar()
     description = description or "Auditable SEC analysis across Walmart, Target, and Costco."

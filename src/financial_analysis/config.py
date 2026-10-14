@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         if not self.sec_user_agent or "@" not in self.sec_user_agent:
             raise ValueError(
                 "SEC_USER_AGENT must identify the project and contain a real contact email, "
-                "for example 'RetailScope analyst@example.com'."
+                "for example 'RetailFinanceLens analyst@example.com'."
             )
 
 

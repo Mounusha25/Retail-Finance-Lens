@@ -22,7 +22,7 @@ from app.ui import (
 
 
 page_setup(
-    "RetailScope",
+    "Retail Finance Lens",
     kicker="Executive overview",
     description=(
         "Financial performance and working-capital intelligence across Walmart, Target, and Costco—"
