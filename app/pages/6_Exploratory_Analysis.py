@@ -52,7 +52,7 @@ growth_margin = px.scatter(
     },
 )
 growth_margin.update_traces(marker=dict(size=11, line=dict(width=1.5, color="white")))
-growth_margin.update_xaxes(tickformat=".1%", zeroline=True, zerolinecolor="#AEBBCB")
+growth_margin.update_xaxes(tickformat=".1%", zeroline=True, zerolinecolor="#383835")
 growth_margin.update_yaxes(tickformat=".1%")
 st.plotly_chart(style_figure(growth_margin, None, 430), width="stretch", config=CHART_CONFIG)
 

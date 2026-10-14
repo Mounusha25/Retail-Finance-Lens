@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -11,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.data import latest_periods, load_or_stop
-from app.ui import CHART_CONFIG, COMPANY_COLORS, LABELS, format_value, kpi_grid, page_setup, section, style_figure, winner
+from app.ui import CHART_CONFIG, COMPANY_COLORS, LABELS, PERCENT_METRICS, format_value, kpi_grid, page_setup, section, style_figure, winner
 
 
 page_setup(
@@ -40,7 +41,7 @@ kpi_grid([
     },
     {
         "label": "Comparison window",
-        "value": "5 years × 3 peers",
+        "value": f"5 years × {annual['ticker'].nunique()} peers",
         "detail": "Calendar year of fiscal-period end; issuer FY retained",
         "tone": "blue",
     },
@@ -61,6 +62,33 @@ figure = px.line(
 )
 figure.update_traces(line_width=3, marker_size=9)
 st.plotly_chart(style_figure(figure, metric), width="stretch", config=CHART_CONFIG)
+
+section(
+    f"{LABELS[metric]}: five-year range",
+    "Each bar spans the lowest to highest value in the window; the marker is the latest fiscal year. Wide bars mean volatile results.",
+    "Football field",
+)
+ranges = annual.groupby("ticker")[metric].agg(["min", "max"]).join(latest.set_index("ticker")[metric].rename("latest")).reset_index()
+ranges = ranges.dropna(subset=["min", "max"]).sort_values("latest", ascending=False)
+field = go.Figure()
+for _, row in ranges.iterrows():
+    colour = COMPANY_COLORS.get(row["ticker"], "#898781")
+    field.add_trace(go.Scatter(
+        x=[row["min"], row["max"]], y=[row["ticker"], row["ticker"]], mode="lines",
+        line=dict(color=colour, width=14), opacity=0.55, showlegend=False, hoverinfo="skip",
+    ))
+    field.add_trace(go.Scatter(
+        x=[row["latest"]], y=[row["ticker"]], mode="markers+text", showlegend=False,
+        marker=dict(color="#f0efec", size=12, line=dict(color=colour, width=3)),
+        text=[format_value(metric, row["latest"])], textposition="top center",
+    ))
+field.update_layout(yaxis=dict(autorange="reversed"), xaxis_title=LABELS[metric], hovermode="closest")
+styled = style_figure(field, None, 300)
+lo, hi = float(ranges["min"].min()), float(ranges["max"].max())
+pad = (hi - lo) * 0.06 or 0.01
+styled.update_xaxes(tickformat=".1%" if metric in PERCENT_METRICS else None, gridcolor="#2c2c2a", range=[lo - pad, hi + pad])
+styled.update_layout(margin=dict(l=64, r=24, t=56, b=26))
+st.plotly_chart(styled, width="stretch", config=CHART_CONFIG)
 
 section("Comparable annual evidence", "Nulls remain visible and every period retains a direct filing link.", "Control table")
 display_columns = [

@@ -8,6 +8,8 @@ The repository contains the data pipeline, PostgreSQL analytical model, validati
 
 ![Architecture overview](docs/assets/architecture.svg)
 
+![Dashboard executive overview](docs/assets/dashboard-overview.png)
+
 ## Dataset
 
 The dataset is **generated, not bundled**. This prevents an unexplained CSV from becoming the source of truth.
@@ -96,13 +98,18 @@ See [data dictionary](docs/data_dictionary.md) for all facts and formulas.
 
 ## Dashboard
 
-1. **Executive overview** — direct latest-period comparison and caveats.
-2. **Peer comparison** — five-year growth, margin, liquidity, and cash trends.
+A dark, equity-research-style workspace with a live ticker tape (latest sales growth, operating margin and ROIC with year-over-year change) on every page.
+
+1. **Executive overview** — analyst verdict, transparent composite scorecard with adjustable pillar weights, pillar leaders with sparklines, and a rank heatmap.
+2. **Peer comparison** — five-year growth, margin, liquidity, and cash trends, plus a five-year range ("football field") view.
 3. **Inventory & working capital** — DIO, payable days, growth gaps, and cash conversion cycle.
 4. **Returns & DuPont** — ROIC, return on equity, and the margin × turnover × leverage decomposition.
-5. **Company trends** — five annual periods or twelve quarters with filing lineage.
-6. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
-7. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
+5. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
+6. **Company trends** — five annual periods or twelve quarters with filing lineage.
+7. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
+8. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
+
+**Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within five pillars (growth, profitability, efficiency, cash, returns) and combined with weights you can change. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
 
 The app reads only `analytics.v_annual_metrics`, `analytics.v_quarterly_metrics`, `analytics.v_peer_comparison`, and `analytics.v_data_quality`. Financial formulas do not live in dashboard code.
 

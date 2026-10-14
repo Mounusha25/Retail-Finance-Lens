@@ -15,9 +15,10 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.data import latest_periods, load_or_stop
+from app.scoring import DEFAULT_WEIGHTS, PILLARS, latest_and_prior, pillar_leaders, score_peers, with_fcf_margin
 from app.ui import (
-    CHART_CONFIG, COMPANY_COLORS, LABELS, format_value, insight,
-    kpi_grid, page_setup, section, style_figure, winner,
+    CHART_CONFIG, COMPANY_COLORS, LABELS, TONES, _fmt_delta, format_value, kpi_grid, page_setup, rank_heatmap,
+    score_table, section, style_figure, verdict,
 )
 
 
@@ -34,86 +35,89 @@ peer = load_or_stop("peer").sort_values("ticker").reset_index(drop=True)
 annual = latest_periods(load_or_stop("annual"), 5)
 quality = load_or_stop("quality")
 
-growth_leader = winner(peer, "revenue_growth")
-cash_leader = winner(peer, "free_cash_flow")
-inventory_leader = winner(peer, "inventory_turnover")
-cycle_leader = winner(peer, "cash_conversion_cycle", highest=False)
+with st.expander("Scoring weights", expanded=False):
+    st.caption(
+        "Each metric is ranked across the peer set (best = 100, worst = 0), averaged within its pillar, and combined "
+        "using these weights. Rank-based scoring means a single outlier cannot dominate."
+    )
+    columns = st.columns(len(PILLARS))
+    weights = {
+        pillar: column.slider(pillar, 0, 100, int(DEFAULT_WEIGHTS[pillar]), 5, key=f"weight_{pillar}")
+        for pillar, column in zip(PILLARS, columns)
+    }
+if sum(weights.values()) == 0:
+    st.warning("All weights are zero; restoring equal weights.")
+    weights = dict(DEFAULT_WEIGHTS)
+
+scores = score_peers(peer, weights)
+leaders = pillar_leaders(scores)
+top = scores.iloc[0]
+runner_up = scores.iloc[1] if len(scores) > 1 else None
+pillar_wins = [pillar for pillar, ticker in leaders.items() if ticker == top["ticker"]]
+weakest_pillar = scores.loc[scores["ticker"] == top["ticker"], list(PILLARS)].iloc[0].dropna().idxmin()
+headline = f"{top['ticker']} leads the peer set with a composite score of {top['Composite']:.0f} / 100."
+reasoning = (
+    (f"It ranks first on {', '.join(pillar_wins)}. " if pillar_wins else "It does not rank first on any single pillar; its lead is breadth. ")
+    + (f"The runner-up, {runner_up['ticker']}, scores {runner_up['Composite']:.0f}. " if runner_up is not None else "")
+    + f"{top['ticker']}'s weakest pillar is {weakest_pillar} ({scores.loc[scores['ticker'] == top['ticker'], weakest_pillar].iloc[0]:.0f}). "
+    + "Scores are relative to this four-company set, not to the market, and reflect each issuer's latest completed fiscal year."
+)
+verdict(headline, reasoning)
+
+section("Composite scorecard", "Pillar scores run 0-100 by rank. Click 'Scoring weights' above to see how the ordering responds.", "Peer ranking")
+score_table(scores, list(PILLARS))
+
+section("Pillar leaders", "Latest fiscal year with the change from the prior year and five-year history.", "Executive snapshot")
+cards = []
+spec = {
+    "Growth": ("revenue_growth", "Net-sales growth", "Net sales basis"),
+    "Profitability": ("operating_margin", "Operating margin", "On total revenue"),
+    "Efficiency": ("cash_conversion_cycle", "Cash conversion cycle", "Lower is better"),
+    "Cash": ("fcf_margin", "FCF margin", "Free cash flow on revenue"),
+    "Returns": ("roic", "ROIC", "After-tax operating profit on invested capital"),
+}
+annual_scored = with_fcf_margin(annual)
+for pillar, (metric, label, detail) in spec.items():
+    ticker = leaders.get(pillar)
+    if ticker is None:
+        continue
+    history = latest_and_prior(annual_scored[annual_scored["ticker"] == ticker], metric).iloc[0]
+    text, direction = _fmt_delta(metric, history["change"])
+    # For the cash cycle a decrease is the favourable direction, so flip the colour semantics.
+    if metric == "cash_conversion_cycle" and direction in {"up", "down"}:
+        direction = "down" if direction == "up" else "up"
+    cards.append({
+        "label": f"{pillar} leader · {label}",
+        "value": f"{ticker} · {format_value(metric, history['latest'])}",
+        "delta": f"{text} vs prior year" if text != "—" else "",
+        "delta_dir": direction,
+        "detail": detail,
+        "tone": "good",
+        "spark": history["history"],
+        "spark_color": COMPANY_COLORS.get(ticker, "#898781"),
+    })
+kpi_grid(cards)
 
 section(
-    "Current peer position",
-    "Latest completed issuer fiscal years; prior periods remain available in the detailed views.",
-    "Executive snapshot",
+    "Rank heatmap",
+    "Brighter cells rank better within each column; the number after each value is the rank among peers.",
+    "Cross-section",
 )
-kpi_grid([
-    {
-        "label": "Growth leader",
-        "value": f"{growth_leader['ticker']} · {format_value('revenue_growth', growth_leader['revenue_growth'])}" if growth_leader is not None else "N/A",
-        "detail": "Latest issuer fiscal year; net sales basis",
-        "tone": "good",
-    },
-    {
-        "label": "Cash-generation leader",
-        "value": f"{cash_leader['ticker']} · {format_value('free_cash_flow', cash_leader['free_cash_flow'])}" if cash_leader is not None else "N/A",
-        "detail": "Operating cash flow less capital expenditures",
-        "tone": "blue",
-    },
-    {
-        "label": "Inventory leader",
-        "value": f"{inventory_leader['ticker']} · {format_value('inventory_turnover', inventory_leader['inventory_turnover'])}" if inventory_leader is not None else "N/A",
-        "detail": "Cost of sales divided by average inventory",
-        "tone": "good",
-    },
-    {
-        "label": "Shortest cash cycle",
-        "value": f"{cycle_leader['ticker']} · {format_value('cash_conversion_cycle', cycle_leader['cash_conversion_cycle'])}" if cycle_leader is not None else "N/A",
-        "detail": "Receivable days + inventory days − payable days",
-        "tone": "watch",
-    },
-])
-
-section(
-    "Management readout",
-    "A concise interpretation of the latest comparable operating and cash-flow signals.",
-    "Analyst assessment",
+rank_heatmap(
+    with_fcf_margin(peer),
+    [
+        ("revenue_growth", "Sales growth", True),
+        ("gross_margin", "Gross margin", True),
+        ("operating_margin", "Operating margin", True),
+        ("fcf_margin", "FCF margin", True),
+        ("inventory_turnover", "Inventory turns", True),
+        ("cash_conversion_cycle", "Cash cycle", False),
+        ("current_ratio", "Current ratio", True),
+        ("roic", "ROIC", True),
+        ("return_on_equity", "ROE", True),
+    ],
 )
-
-cost = peer.loc[peer["ticker"] == "COST"].iloc[0]
-tgt = peer.loc[peer["ticker"] == "TGT"].iloc[0]
-wmt = peer.loc[peer["ticker"] == "WMT"].iloc[0]
-
-kroger = peer.loc[peer["ticker"] == "KR"]
-left, middle, right, fourth = st.columns(4)
-with left:
-    insight(
-        "Costco — strongest operating momentum",
-        f"Net sales grew {format_value('revenue_growth', cost['revenue_growth'])}; "
-        f"inventory turned {format_value('inventory_turnover', cost['inventory_turnover'])} with a "
-        f"{format_value('cash_conversion_cycle', cost['cash_conversion_cycle'])} cash cycle.",
-    )
-with middle:
-    insight(
-        "Walmart — largest cash engine",
-        f"Generated {format_value('free_cash_flow', wmt['free_cash_flow'])} of free cash flow and converted "
-        f"earnings to operating cash at {format_value('ocf_to_net_income', wmt['ocf_to_net_income'])}.",
-    )
-with right:
-    direction = "contracted" if float(tgt["revenue_growth"]) < 0 else "grew"
-    insight(
-        "Target — profitability watch",
-        f"Net sales {direction} {abs(float(tgt['revenue_growth'])):.1%}; inventory turnover of "
-        f"{format_value('inventory_turnover', tgt['inventory_turnover'])} trails the other peers.",
-    )
-with fourth:
-    if kroger.empty:
-        insight("Kroger — grocery benchmark", "Not loaded in the current dataset.")
-    else:
-        kr = kroger.iloc[0]
-        insight(
-            "Kroger — grocery benchmark",
-            f"Inventory turned {format_value('inventory_turnover', kr['inventory_turnover'])} with a "
-            f"{format_value('cash_conversion_cycle', kr['cash_conversion_cycle'])} cash cycle, on a "
-            f"{format_value('operating_margin', kr['operating_margin'])} operating margin.",
-        )
+st.caption("Kroger's cost of sales excludes depreciation and rent-type items, so its gross margin is not strictly comparable.")
 
 section("Peer scorecard", "Compare current performance across the metrics most relevant to finance leadership.")
 profit_tab, cash_tab, operations_tab = st.tabs(["Growth & margins", "Cash conversion", "Working capital"])
@@ -138,9 +142,10 @@ with cash_tab:
     cash_long = peer[["ticker", "operating_cash_flow", "free_cash_flow"]].melt(
         id_vars="ticker", var_name="metric", value_name="value"
     )
+    cash_long["metric"] = cash_long["metric"].map(LABELS)
     chart = px.bar(
         cash_long, x="ticker", y="value", color="metric", barmode="group",
-        color_discrete_map={"operating_cash_flow": "#2563EB", "free_cash_flow": "#0D9488"},
+        color_discrete_map={LABELS["operating_cash_flow"]: TONES["secondary"], LABELS["free_cash_flow"]: TONES["accent"]},
         labels={"value": "USD", "ticker": "", "metric": ""},
     )
     chart.update_layout(legend_title_text="")
@@ -150,10 +155,12 @@ with operations_tab:
     operations = peer[["ticker", "days_inventory_outstanding", "payable_days", "cash_conversion_cycle"]].melt(
         id_vars="ticker", var_name="metric", value_name="days"
     )
+    operations["metric"] = operations["metric"].map(LABELS)
     chart = px.bar(
         operations, x="ticker", y="days", color="metric", barmode="group",
         color_discrete_map={
-            "days_inventory_outstanding": "#2563EB", "payable_days": "#7C3AED", "cash_conversion_cycle": "#0D9488"
+            LABELS["days_inventory_outstanding"]: TONES["secondary"], LABELS["payable_days"]: TONES["muted"],
+            LABELS["cash_conversion_cycle"]: TONES["accent"],
         }, labels={"days": "Days", "ticker": "", "metric": ""},
     )
     st.plotly_chart(style_figure(chart, "cash_conversion_cycle", 360), width="stretch", config=CHART_CONFIG)

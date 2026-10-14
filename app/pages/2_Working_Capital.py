@@ -34,10 +34,10 @@ kpi_grid([
 
 section("Latest operating-cycle bridge", "Inventory and receivable days consume cash; payable days fund the cycle.")
 bridge = go.Figure()
-bridge.add_bar(name="Receivable days", x=latest["ticker"], y=latest["receivable_days"], marker_color="#60A5FA")
-bridge.add_bar(name="Inventory days", x=latest["ticker"], y=latest["days_inventory_outstanding"], marker_color="#2563EB")
-bridge.add_bar(name="Payable days (offset)", x=latest["ticker"], y=-latest["payable_days"], marker_color="#7C3AED")
-bridge.add_scatter(name="Cash conversion cycle", x=latest["ticker"], y=latest["cash_conversion_cycle"], mode="markers+text", text=[f"{v:.1f}" for v in latest["cash_conversion_cycle"]], textposition="top center", marker=dict(size=13, color="#0D9488", symbol="diamond"))
+bridge.add_bar(name="Receivable days", x=latest["ticker"], y=latest["receivable_days"], marker_color="#898781")
+bridge.add_bar(name="Inventory days", x=latest["ticker"], y=latest["days_inventory_outstanding"], marker_color="#c3c2b7")
+bridge.add_bar(name="Payable days (offset)", x=latest["ticker"], y=-latest["payable_days"], marker_color="#fab219")
+bridge.add_scatter(name="Cash conversion cycle", x=latest["ticker"], y=latest["cash_conversion_cycle"], mode="markers+text", text=[f"{v:.1f}" for v in latest["cash_conversion_cycle"]], textposition="top center", marker=dict(size=13, color="#f0efec", symbol="diamond"))
 bridge.update_layout(barmode="relative", yaxis_title="Days", xaxis_title="")
 st.plotly_chart(style_figure(bridge, "cash_conversion_cycle"), width="stretch", config=CHART_CONFIG)
 

@@ -49,7 +49,8 @@ with growth_tab:
 with cash_tab:
     section("Profit-to-cash conversion", "Compare operating cash flow and free cash flow, then inspect OCF relative to net income.")
     cash = company[["period_end", "operating_cash_flow", "free_cash_flow"]].melt(id_vars="period_end", var_name="metric", value_name="value")
-    figure = px.bar(cash, x="period_end", y="value", color="metric", barmode="group", color_discrete_map={"operating_cash_flow": "#2563EB", "free_cash_flow": "#0D9488"}, labels={"value": "USD", "period_end": "Fiscal period end", "metric": ""})
+    cash["metric"] = cash["metric"].map(LABELS)
+    figure = px.bar(cash, x="period_end", y="value", color="metric", barmode="group", color_discrete_map={LABELS["operating_cash_flow"]: "#c3c2b7", LABELS["free_cash_flow"]: "#fab219"}, labels={"value": "USD", "period_end": "Fiscal period end", "metric": ""})
     st.plotly_chart(style_figure(figure, "free_cash_flow"), width="stretch", config=CHART_CONFIG)
 
 with balance_tab:

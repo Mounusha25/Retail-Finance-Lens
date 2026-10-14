@@ -59,7 +59,12 @@ for position, (column, _label) in enumerate(panels, start=1):
         text=[f"{v:.1%}" if column == "net_margin" else f"{v:.2f}×" for v in ordered[column]],
         textposition="outside",
     )
-bridge.update_yaxes(rangemode="tozero")
+for position, (column, _label) in enumerate(panels, start=1):
+    top = float(ordered[column].max())
+    bridge.update_yaxes(
+        range=[0, top * 1.22], row=1, col=position,
+        tickformat=".1%" if column == "net_margin" else ".1f",
+    )
 st.plotly_chart(style_figure(bridge, height=340), width="stretch", config=CHART_CONFIG)
 
 driver = st.radio(
