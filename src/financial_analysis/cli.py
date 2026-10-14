@@ -22,7 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     for command in ("ingest", "transform", "load", "validate", "refresh", "report"):
         sub = subparsers.add_parser(command)
-        sub.add_argument("--companies", default="all", help="Comma-separated WMT,TGT,COST or all")
+        sub.add_argument("--companies", default="all", help="Comma-separated tickers (WMT,TGT,COST,KR) or all")
         if command in {"transform", "refresh"}:
             sub.add_argument("--as-of", type=date.fromisoformat, help="Only use filings available by YYYY-MM-DD")
     return parser

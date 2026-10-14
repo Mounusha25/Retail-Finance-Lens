@@ -365,6 +365,47 @@ def derive_total_revenue(facts: Iterable[CanonicalFact]) -> list[CanonicalFact]:
     return derived
 
 
+def derive_net_inventory(facts: Iterable[CanonicalFact]) -> list[CanonicalFact]:
+    """Net LIFO inventory = FIFO inventory - LIFO reserve, from facts at the same date and filing.
+
+    Applied only when the issuer reports no net inventory fact. Both components are point-in-time
+    values at the same balance-sheet date, so this is arithmetic on one statement, not period differencing.
+    """
+    items = list(facts)
+    existing = {
+        (fact.accession_number, fact.period_end)
+        for fact in items
+        if fact.canonical_concept == "inventory"
+    }
+    reserves = {
+        (fact.accession_number, fact.period_end): fact
+        for fact in items
+        if fact.canonical_concept == "lifo_reserve"
+    }
+    derived: list[CanonicalFact] = []
+    for fifo in [fact for fact in items if fact.canonical_concept == "fifo_inventory"]:
+        key = (fifo.accession_number, fifo.period_end)
+        reserve = reserves.get(key)
+        if key in existing or reserve is None:
+            continue
+        net = fifo.normalized_value - reserve.normalized_value
+        derived.append(
+            replace(
+                fifo,
+                canonical_concept="inventory",
+                source_concept="derived:fifo_inventory-lifo_reserve",
+                raw_value=str(net),
+                normalized_value=net,
+                is_derived=True,
+                derivation=(
+                    f"FIFO inventory {fifo.source_concept} less LIFO reserve "
+                    f"{reserve.source_concept} in {fifo.accession_number}"
+                ),
+            )
+        )
+    return derived
+
+
 def write_staged_facts(path: Path, facts: Iterable[CanonicalFact]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as stream:

@@ -9,9 +9,17 @@ import plotly.graph_objects as go
 import streamlit as st
 
 
-COMPANY_COLORS = {"COST": "#005DAA", "TGT": "#CC0000", "WMT": "#0071CE"}
+COMPANY_COLORS = {"COST": "#005DAA", "TGT": "#CC0000", "WMT": "#0071CE", "KR": "#7C3AED"}
 
 BRAND_THEMES = {
+    "KR": {
+        "name": "The Kroger Co.",
+        "primary": "#7C3AED",
+        "secondary": "#0B4EA2",
+        "soft": "#F3EEFE",
+        "sidebar_start": "#1B0F36",
+        "sidebar_end": "#32195F",
+    },
     "COST": {
         "name": "Costco Wholesale",
         "primary": "#005DAA",
@@ -216,7 +224,7 @@ def _render_sidebar() -> None:
             <div class="side-status">
               <div class="side-status-label">Data environment</div>
               <div class="side-status-value"><span class="live-dot"></span>SEC dataset available</div>
-              <div class="side-status-detail">Walmart · Target · Costco<br>Auditable filing lineage enabled</div>
+              <div class="side-status-detail">Walmart · Target · Costco · Kroger<br>Auditable filing lineage enabled</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -227,7 +235,7 @@ def page_setup(title: str, kicker: str = "Retail intelligence", description: str
     st.set_page_config(page_title=f"{title} | Retail Finance Lens", page_icon="◆", layout="wide", initial_sidebar_state="auto")
     st.markdown(APP_CSS, unsafe_allow_html=True)
     _render_sidebar()
-    description = description or "Auditable SEC analysis across Walmart, Target, and Costco."
+    description = description or "Auditable SEC analysis across Walmart, Target, Costco, and Kroger."
     st.markdown(
         f"""
         <div class="page-header">
@@ -329,7 +337,7 @@ def style_figure(figure: go.Figure, metric: str | None = None, height: int = 410
         legend=dict(orientation="h", y=1.1, x=0, title_text="", font=dict(size=11)),
         xaxis=dict(gridcolor="rgba(0,0,0,0)", linecolor="#D8E0EA", tickfont=dict(color="#66758A"), title_font=dict(color="#526174")),
         yaxis=dict(gridcolor="#EDF1F5", linecolor="#D8E0EA", zerolinecolor="#AEBBCB", tickfont=dict(color="#66758A"), title_font=dict(color="#526174")),
-        colorway=[COMPANY_COLORS["COST"], COMPANY_COLORS["TGT"], COMPANY_COLORS["WMT"]],
+        colorway=[COMPANY_COLORS[t] for t in ("COST", "TGT", "WMT", "KR")],
         hovermode="x unified", bargap=.28,
     )
     figure.update_traces(hovertemplate=None)

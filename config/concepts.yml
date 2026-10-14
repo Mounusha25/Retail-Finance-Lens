@@ -18,6 +18,8 @@ concepts:
       - {taxonomy: us-gaap, concept: Revenues, priority: 10}
       - {taxonomy: us-gaap, concept: RevenueFromContractWithCustomerIncludingAssessedTax, priority: 20}
       - {taxonomy: cost, concept: TotalRevenue, priority: 5, company: COST}
+      # Kroger has no separate membership line: reported sales are its total revenue.
+      - {taxonomy: us-gaap, concept: RevenueFromContractWithCustomerExcludingAssessedTax, priority: 5, company: KR}
   cost_of_sales:
     period_type: duration
     aliases:
@@ -26,6 +28,9 @@ concepts:
       - {taxonomy: cost, concept: MerchandiseCosts, priority: 5, company: COST}
       - {taxonomy: wmt, concept: CostOfSales, priority: 5, company: WMT}
       - {taxonomy: tgt, concept: CostOfSales, priority: 5, company: TGT}
+      # Kroger reports merchandise costs excluding depreciation, rent and similar items.
+      - {taxonomy: us-gaap, concept: CostOfGoodsAndServiceExcludingDepreciationDepletionAndAmortization, priority: 5, company: KR}
+      - {taxonomy: us-gaap, concept: CostOfGoodsSold, priority: 6, company: KR}
   operating_income:
     period_type: duration
     aliases:
@@ -57,6 +62,16 @@ concepts:
     aliases:
       - {taxonomy: us-gaap, concept: InventoryNet, priority: 10}
       - {taxonomy: us-gaap, concept: InventoryFinishedGoodsNetOfAllowancesCustomerAdvancesAndProgressBillings, priority: 20}
+  # Kroger tags inventory on a FIFO basis plus a LIFO reserve rather than one net figure;
+  # transform.derive_net_inventory combines them into `inventory`.
+  fifo_inventory:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: FIFOInventoryAmount, priority: 10, company: KR}
+  lifo_reserve:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: InventoryLIFOReserve, priority: 10, company: KR}
   current_assets:
     period_type: instant
     aliases:
@@ -65,6 +80,7 @@ concepts:
     period_type: instant
     aliases:
       - {taxonomy: us-gaap, concept: AccountsPayableCurrent, priority: 10}
+      - {taxonomy: us-gaap, concept: AccountsPayableTradeCurrent, priority: 20, company: KR}
   short_term_borrowings:
     period_type: instant
     aliases:
@@ -121,6 +137,7 @@ concepts:
     aliases:
       - {taxonomy: us-gaap, concept: PaymentsToAcquirePropertyPlantAndEquipment, priority: 10}
       - {taxonomy: us-gaap, concept: PaymentsForAdditionsToPropertyPlantAndEquipment, priority: 20}
+      - {taxonomy: us-gaap, concept: PaymentsToAcquireProductiveAssets, priority: 30, company: KR}
   investing_cash_flow:
     period_type: duration
     aliases:

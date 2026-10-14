@@ -13,6 +13,7 @@ from financial_analysis.inline_xbrl import extract_inline_revenue_facts, load_in
 from financial_analysis.transform import (
     ConceptRegistry,
     classify_period,
+    derive_net_inventory,
     derive_q4_facts,
     derive_standalone_quarters,
     derive_total_revenue,
@@ -167,3 +168,44 @@ def test_inline_xbrl_splits_target_sales_and_aggregates_other_revenue():
     assert values["net_sales"] == Decimal("102717000000")
     assert values["membership_other_revenue"] == Decimal("1437000000")
     assert all(fact.source_concept.startswith("inline:") for fact in facts)
+
+
+def _kroger_payload(extra: dict | None = None) -> dict:
+    instant = {"end": "2026-01-31", "accn": "0000056873-26-000010", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-31"}
+    facts = {
+        "FIFOInventoryAmount": {"units": {"USD": [{**instant, "val": 9445000000}]}},
+        "InventoryLIFOReserve": {"units": {"USD": [{**instant, "val": 2553000000}]}},
+    }
+    facts.update(extra or {})
+    return {"facts": {"us-gaap": facts}}
+
+
+def test_net_inventory_is_fifo_less_lifo_reserve_when_not_reported():
+    facts = extract_company_facts(_kroger_payload(), "KR", "0000056873", REGISTRY)
+    derived = derive_net_inventory(facts)
+    assert len(derived) == 1
+    assert derived[0].canonical_concept == "inventory"
+    assert derived[0].normalized_value == Decimal("6892000000")
+    assert derived[0].is_derived is True
+    assert "LIFO reserve" in (derived[0].derivation or "")
+
+
+def test_net_inventory_not_derived_when_issuer_reports_inventory():
+    reported = {
+        "InventoryNet": {"units": {"USD": [
+            {"end": "2026-01-31", "val": 6800000000, "accn": "0000056873-26-000010", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-31"}
+        ]}}
+    }
+    facts = extract_company_facts(_kroger_payload(reported), "KR", "0000056873", REGISTRY)
+    assert derive_net_inventory(facts) == []
+
+
+def test_kroger_fiscal_labels_and_sixteen_week_first_quarter():
+    from datetime import date
+
+    from financial_analysis.transform import classify_period, issuer_fiscal_year
+
+    assert issuer_fiscal_year("KR", "10-K", date(2026, 1, 31)) == 2025
+    # Kroger's first quarter is 16 weeks (112 days) and must classify as a standalone quarter.
+    kind, days, _ = classify_period("10-Q", date(2025, 2, 2), date(2025, 5, 24))
+    assert (kind, days) == ("quarterly", 112)

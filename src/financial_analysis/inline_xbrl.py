@@ -12,6 +12,7 @@ from typing import Any
 import yaml
 from lxml import html
 
+from .config import COMPANIES
 from .transform import CanonicalFact, classify_period, issuer_fiscal_year
 
 
@@ -96,7 +97,7 @@ def _quarter_label(ticker: str, form: str, end: date, kind: str) -> str | None:
         return "FY"
     if form.replace("/A", "") != "10-Q":
         return None
-    fiscal_end_month = {"WMT": 1, "TGT": 1, "COST": 8}[ticker]
+    fiscal_end_month = int(COMPANIES[ticker]["fiscal_year_end_month"])
     month_distance = (end.month - fiscal_end_month) % 12
     if 2 <= month_distance <= 4:
         return "Q1"

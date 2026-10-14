@@ -41,4 +41,5 @@ COMPANIES = {
     "WMT": {"name": "Walmart Inc.", "cik": "0000104169", "ticker": "WMT", "fiscal_year_end": "0131", "fiscal_year_end_month": 1, "fiscal_year_label_offset": 0},
     "TGT": {"name": "Target Corporation", "cik": "0000027419", "ticker": "TGT", "fiscal_year_end": "nearest Saturday to 0131", "fiscal_year_end_month": 1, "fiscal_year_label_offset": -1},
     "COST": {"name": "Costco Wholesale Corporation", "cik": "0000909832", "ticker": "COST", "fiscal_year_end": "nearest Sunday to 0831", "fiscal_year_end_month": 8, "fiscal_year_label_offset": 0},
+    "KR": {"name": "The Kroger Co.", "cik": "0000056873", "ticker": "KR", "fiscal_year_end": "Saturday nearest January 31", "fiscal_year_end_month": 1, "fiscal_year_label_offset": -1},
 }

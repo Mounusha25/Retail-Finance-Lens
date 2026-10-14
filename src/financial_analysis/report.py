@@ -58,6 +58,43 @@ def _returns_paragraph(peer: pd.DataFrame) -> str:
     return "; ".join(parts) + "."
 
 
+def _depressed_earnings_note(peer: pd.DataFrame, threshold: float = 3.0) -> str:
+    flagged = peer[peer["ocf_to_net_income"].notna() & (peer["ocf_to_net_income"] > threshold)]
+    if flagged.empty:
+        return ""
+    names = ", ".join(f"{row['ticker']} ({_number(row['ocf_to_net_income'], '×')})" for _, row in flagged.iterrows())
+    return (
+        f" OCF / net income is unusually high for {names}; a ratio that large usually reflects net income depressed by non-cash "
+        "charges such as impairments, not exceptional cash generation, so it should not be read as a stronger cash-quality signal."
+    )
+
+
+CORE_PEERS = ("COST", "TGT", "WMT")
+
+
+def _kroger_paragraph(peer: pd.DataFrame) -> str:
+    """Rank Kroger against every loaded peer on the headline metrics, from the data."""
+    if "KR" not in set(peer["ticker"]):
+        return ""
+    metrics = [
+        ("revenue_growth", "net-sales growth", True, _percent),
+        ("operating_margin", "operating margin", True, _percent),
+        ("inventory_turnover", "inventory turnover", True, lambda v: _number(v, "×")),
+        ("cash_conversion_cycle", "cash conversion cycle (shorter is better)", False, lambda v: _number(v, " days")),
+        ("ocf_to_net_income", "OCF / net income", True, lambda v: _number(v, "×")),
+        ("roic", "ROIC", True, _percent),
+    ]
+    row = peer[peer["ticker"] == "KR"].iloc[0]
+    pieces = []
+    for column, label, higher_is_better, fmt in metrics:
+        valid = peer.dropna(subset=[column])
+        if pd.isna(row[column]) or "KR" not in set(valid["ticker"]):
+            continue
+        ordered = valid.sort_values(column, ascending=not higher_is_better)["ticker"].tolist()
+        pieces.append(f"{label} of {fmt(row[column])} ranked {ordered.index('KR') + 1} of {len(ordered)}")
+    return "Kroger's latest fiscal year " + "; ".join(pieces) + "." if pieces else ""
+
+
 def generate_report(settings: Settings, output: Path | None = None) -> Path:
     output = output or PROJECT_ROOT / "reports" / "v1_findings.md"
     with make_engine(settings.database_url).connect() as connection:
@@ -87,13 +124,14 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
     tgt = by_ticker["TGT"]
     wmt = by_ticker["WMT"]
     status_counts = quality["status"].value_counts() if not quality.empty else pd.Series(dtype=int)
+    n53 = int(annual["is_53_week"].fillna(False).astype(bool).sum()) if "is_53_week" in annual else 0
     target_quarters = quarterly[quarterly["ticker"] == "TGT"]
     target_ccc_missing = int(target_quarters["cash_conversion_cycle"].isna().sum())
 
     lines = [
         "# Retail Finance Lens — Performance & Working Capital Analytics",
         "",
-        "## Analyst report — Walmart, Target, and Costco",
+        "## Analyst report — Walmart, Target, Costco, and Kroger",
         "",
         f"**Prepared:** {date.today().isoformat()}  ",
         "**Decision question:** Which retailer is growing profitably, managing inventory efficiently, and converting profit into cash?  ",
@@ -104,7 +142,7 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
         "## Executive conclusion",
         "",
         (
-            f"**Costco currently presents the strongest combination of growth and operating efficiency.** Its latest net sales "
+            f"**Among Walmart, Target, and Costco, Costco presents the strongest combination of growth and operating efficiency.** Its latest net sales "
             f"grew {_percent(cost['revenue_growth'])}, inventory turned {_number(cost['inventory_turnover'], '×')}, and the cash "
             f"conversion cycle was only {_number(cost['cash_conversion_cycle'], ' day')}. Walmart remains the peer group's "
             f"largest absolute cash generator, producing {_billions(wmt['free_cash_flow'])} of free cash flow. Target retained "
@@ -114,6 +152,8 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
         "",
         "This is not a single-winner story. Costco leads on momentum and working-capital speed; Walmart leads on cash scale; Target "
         "shows that higher margin does not automatically imply stronger growth or inventory productivity.",
+        "",
+        _kroger_paragraph(peer),
         "",
         "### Latest completed fiscal-year scorecard",
         "",
@@ -130,8 +170,8 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
 
     lines.extend([
         "",
-        "*Periods reflect each issuer's fiscal calendar. Target's year ended 2026-01-31 is issuer FY2025; Walmart labels the same "
-        "ending date FY2026. Costco's latest year ended 2026-08-30.*",
+        "*Periods reflect each issuer's fiscal calendar. Target's and Kroger's years ended 2026-01-31 are issuer FY2025; Walmart labels "
+        "the same ending date FY2026. Costco's latest year ended 2026-08-30.*",
         "",
         "---",
         "",
@@ -142,7 +182,7 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
         (
             f"Costco's latest net sales increased {_percent(cost['revenue_growth'])} to {_billions(cost['net_sales'])}. Gross margin "
             f"was {_percent(cost['gross_margin'])} and operating margin was {_percent(cost['operating_margin'])}, while inventory "
-            f"turned {_number(cost['inventory_turnover'], '×')}—well ahead of Walmart and Target. Its "
+            f"turned {_number(cost['inventory_turnover'], '×')}—well ahead of Walmart and Target (Kroger's grocery model is compared separately below). Its "
             f"{_number(cost['cash_conversion_cycle'], '-day')} cash conversion cycle indicates that very little cash remained tied "
             f"up between paying suppliers and collecting from customers. {_filing_link(cost)}"
         ),
@@ -206,7 +246,20 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             "be monitored alongside the five-year trend before concluding that the latest conversion rate is sustainable."
         ),
         "",
-        "### 5. Returns differ because of capital intensity and leverage, not only margin",
+        "### 5. Kroger shows what a grocery-led model looks like against the general-merchandise and club peers",
+        "",
+        _kroger_paragraph(peer),
+        "",
+        (
+            "**Implication.** Grocery turns inventory faster and carries thinner margins than general merchandise, so Kroger should be "
+            "read against Costco and Walmart's grocery mix rather than against Target. Kroger's cost of sales excludes depreciation and "
+            "rent-type items, so its gross margin is not strictly comparable with peers that include them; operating margin and cash "
+            "metrics are the cleaner cross-company comparison. Its net inventory is derived as FIFO inventory less the LIFO reserve "
+            "because it does not tag a single net figure."
+            + _depressed_earnings_note(peer)
+        ),
+        "",
+        "### 6. Returns differ because of capital intensity and leverage, not only margin",
         "",
         _returns_paragraph(peer),
         "",
@@ -243,7 +296,9 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
         "timing before extrapolating the latest cash conversion ratio.",
         "3. **Target:** reconcile sales pressure with margin resilience through traffic, ticket, category mix, markdowns, shrink, and "
         "advertising/credit-card revenue; monitor inventory growth against sales each quarter.",
-        "4. **Across peers:** compare supplier-term changes and lease-adjusted obligations, then extend the analysis to segment-level and "
+        "4. **Kroger:** separate the effect of impairment and restructuring charges on operating margin, the buyback-driven fall in "
+        "equity on ROE, and the contribution of pharmacy, fuel, and alternative profits to cash conversion.",
+        "5. **Across peers:** compare supplier-term changes and lease-adjusted obligations, then extend the analysis to segment-level and "
         "comparable-sales disclosures before making capital-allocation conclusions.",
         "",
         "## Methodology, controls, and limitations",
@@ -256,8 +311,8 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
         "- Net sales—not consolidated revenue—drives growth and gross margin. Membership and other revenue remains separate.",
         "- Average beginning and ending balances drive inventory, receivable, and payable efficiency. Actual fiscal-day counts drive days metrics.",
         "- Standalone quarterly flows are derived from cumulative disclosures when necessary; Q4 equals the annual value less Q3 YTD. Instant balances are never differenced.",
-        "- Fiscal years are aligned by calendar year of period end but are not identical economic windows. Two displayed annual periods are 53-week years and are flagged rather than normalized away.",
-        "- Missing facts remain null. Total-liability mapping gaps produce the 12 current warnings; no missing amount is silently treated as zero.",
+        f"- Fiscal years are aligned by calendar year of period end but are not identical economic windows. {n53} displayed annual period(s) are 53-week years and are flagged rather than normalized away.",
+        f"- Missing facts remain null; the current run has {int(status_counts.get('warning', 0))} warnings and no missing amount is silently treated as zero.",
         f"- Target has {target_ccc_missing} missing quarterly cash-cycle observations because a comparable quarterly receivables series is not disclosed under the configured concepts.",
         "- The analysis is consolidated-company, nominal USD, and U.S. GAAP. It excludes segments, constant-currency adjustments, leases beyond reported debt fields, valuation, and stock-price performance.",
         "- Latest-known facts power the dashboard. Historical versions remain stored, but this report is not an as-of-date investment backtest.",

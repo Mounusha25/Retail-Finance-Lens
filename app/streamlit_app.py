@@ -25,7 +25,7 @@ page_setup(
     "Retail Finance Lens",
     kicker="Executive overview",
     description=(
-        "Financial performance and working-capital intelligence across Walmart, Target, and Costco—"
+        "Financial performance and working-capital intelligence across Walmart, Target, Costco, and Kroger—"
         "with every conclusion traced to SEC filings."
     ),
 )
@@ -81,7 +81,8 @@ cost = peer.loc[peer["ticker"] == "COST"].iloc[0]
 tgt = peer.loc[peer["ticker"] == "TGT"].iloc[0]
 wmt = peer.loc[peer["ticker"] == "WMT"].iloc[0]
 
-left, middle, right = st.columns(3)
+kroger = peer.loc[peer["ticker"] == "KR"]
+left, middle, right, fourth = st.columns(4)
 with left:
     insight(
         "Costco — strongest operating momentum",
@@ -100,8 +101,19 @@ with right:
     insight(
         "Target — profitability watch",
         f"Net sales {direction} {abs(float(tgt['revenue_growth'])):.1%}; inventory turnover of "
-        f"{format_value('inventory_turnover', tgt['inventory_turnover'])} trails both peers.",
+        f"{format_value('inventory_turnover', tgt['inventory_turnover'])} trails the other peers.",
     )
+with fourth:
+    if kroger.empty:
+        insight("Kroger — grocery benchmark", "Not loaded in the current dataset.")
+    else:
+        kr = kroger.iloc[0]
+        insight(
+            "Kroger — grocery benchmark",
+            f"Inventory turned {format_value('inventory_turnover', kr['inventory_turnover'])} with a "
+            f"{format_value('cash_conversion_cycle', kr['cash_conversion_cycle'])} cash cycle, on a "
+            f"{format_value('operating_margin', kr['operating_margin'])} operating margin.",
+        )
 
 section("Peer scorecard", "Compare current performance across the metrics most relevant to finance leadership.")
 profit_tab, cash_tab, operations_tab = st.tabs(["Growth & margins", "Cash conversion", "Working capital"])

@@ -1,6 +1,6 @@
 # Retail Finance Lens — Performance & Working Capital Analytics
 
-An auditable financial-analysis portfolio project comparing Walmart, Target, and Costco from SEC filings. It answers:
+An auditable financial-analysis portfolio project comparing Walmart, Target, Costco, and Kroger from SEC filings. It answers:
 
 > Which retailers are growing profitably, how efficiently are they managing inventory, and is their profit translating into cash?
 
@@ -13,11 +13,11 @@ The repository contains the data pipeline, PostgreSQL analytical model, validati
 The dataset is **generated, not bundled**. This prevents an unexplained CSV from becoming the source of truth.
 
 - Source: SEC Submissions and Company Facts APIs plus each filing's primary inline-XBRL document. The filing document supplies audited dimensional revenue breakouts that Company Facts omits.
-- Companies: WMT (`0000104169`), TGT (`0000027419`), COST (`0000909832`).
+- Companies: WMT (`0000104169`), TGT (`0000027419`), COST (`0000909832`), KR (`0000056873`).
 - Display window: five fiscal periods ending in calendar years 2022–2026 and the latest 12 quarters.
 - Support window: earlier annual and quarterly observations remain available for growth rates and average balances.
 - Version policy: latest-known facts in analytical views; every as-filed fact retained in the canonical tables.
-- Offline development: compact pinned Company Facts fixtures for all three companies are under `tests/fixtures`.
+- Offline development: compact pinned Company Facts fixtures for Walmart, Target, and Costco are under `tests/fixtures`; Kroger's mapping is covered by synthetic-payload unit tests.
 
 Raw responses are kept as gzipped files and as compressed bytes in PostgreSQL with their retrieval timestamp, URL, headers, HTTP status, and SHA-256 hash.
 
@@ -89,7 +89,7 @@ The concept registries are in `config/concepts.yml` and `config/inline_concepts.
 - Total revenue drives operating and net margins.
 - Average beginning and ending balances drive inventory, receivable, and payable efficiency.
 - Actual fiscal days drive days metrics; 53-week years are flagged.
-- Target's year ended January 31, 2026 is issuer FY2025, while Walmart calls its year ended January 31, 2026 FY2026. Both retain their issuer label and align by calendar year of fiscal-period end.
+- Target's and Kroger's years ended January 31, 2026 are issuer FY2025, while Walmart calls its year ended January 31, 2026 FY2026. Both retain their issuer label and align by calendar year of fiscal-period end.
 - Missing data remains null. An absent short-term-investment fact, for example, is not silently assumed to be zero in the quick ratio.
 
 See [data dictionary](docs/data_dictionary.md) for all facts and formulas.
@@ -112,7 +112,7 @@ The app reads only `analytics.v_annual_metrics`, `analytics.v_quarterly_metrics`
 pytest --cov=financial_analysis --cov-report=term-missing
 ```
 
-Tests cover all three issuer mappings, annual/YTD/standalone-quarter classification, Q4 derivation, 53-week years, normalized capex signs, materiality tolerance, and the SQL metric contract. Integration acceptance additionally requires:
+Tests cover the issuer mappings (including Kroger's derived net inventory and 16-week first quarter), annual/YTD/standalone-quarter classification, Q4 derivation, 53-week years, normalized capex signs, materiality tolerance, and the SQL metric contract. Integration acceptance additionally requires:
 
 - Idempotent repeated loads.
 - Five annual and twelve quarterly displayed periods per company when SEC history supplies the required facts.

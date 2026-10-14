@@ -29,8 +29,8 @@ passed = int((quality["status"] == "passed").sum())
 warnings = int((quality["status"] == "warning").sum())
 errors = int((quality["status"] == "error").sum())
 kpi_grid([
-    {"label": "Displayed annual periods", "value": f"{len(annual)} / 15", "detail": "Five periods for each of three companies", "tone": "good"},
-    {"label": "Displayed quarters", "value": f"{len(quarterly)} / 36", "detail": "Twelve quarters for each company", "tone": "blue"},
+    {"label": "Displayed annual periods", "value": f"{len(annual)} / {5 * annual['ticker'].nunique()}", "detail": f"Five periods for each of {annual['ticker'].nunique()} companies", "tone": "good"},
+    {"label": "Displayed quarters", "value": f"{len(quarterly)} / {12 * quarterly['ticker'].nunique()}", "detail": "Twelve quarters for each company", "tone": "blue"},
     {"label": "Checks passed", "value": str(passed), "detail": "Latest validation run only", "tone": "good"},
     {"label": "Flags requiring context", "value": f"{warnings} warnings · {errors} errors", "detail": "Missing data is visible and never zero-filled", "tone": "watch" if not errors else "red"},
 ])
@@ -75,6 +75,7 @@ with lineage_tab:
         """
         - SEC Submissions, Company Facts, and primary inline-XBRL filing documents are preserved as gzip files and compressed database payloads.
         - Dimensional inline-XBRL separates Costco membership revenue and Target product versus other revenue.
+        - Kroger does not tag net inventory; it is derived as FIFO inventory less the LIFO reserve at the same balance-sheet date and flagged as derived. Its cost of sales excludes depreciation and rent-type items.
         - Latest-filed values power analytical views; original and amended versions remain in `financial_facts`.
         - Standalone quarters are preferred. Q2/Q3 may be derived from cumulative disclosures; Q4 is annual less nine months.
         - Point-in-time balance-sheet facts are never differenced. Fifty-three-week periods remain visibly flagged.

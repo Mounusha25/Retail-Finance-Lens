@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import uuid
+from dataclasses import replace
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -23,6 +24,7 @@ from .sec_client import RawResponse, SecClient, read_gzip_json
 from .transform import (
     CanonicalFact,
     ConceptRegistry,
+    derive_net_inventory,
     derive_standalone_quarters,
     derive_total_revenue,
     extract_company_facts,
@@ -166,8 +168,16 @@ def transform(settings: Settings, tickers: Iterable[str], as_of: date | None = N
                         inline_rules,
                     )
                 )
+        # Company Facts rows only know the accession folder; link each to its primary document.
+        facts = [
+            replace(fact, source_url=filing_by_accession[fact.accession_number]["source_url"])
+            if fact.accession_number in filing_by_accession and fact.source_url.endswith("/")
+            else fact
+            for fact in facts
+        ]
         if as_of:
             facts = [fact for fact in facts if fact.filed_at <= as_of]
+        facts.extend(derive_net_inventory(facts))
         facts.extend(derive_total_revenue(facts))
         facts.extend(derive_standalone_quarters(facts))
         facts.extend(derive_total_revenue(facts))
