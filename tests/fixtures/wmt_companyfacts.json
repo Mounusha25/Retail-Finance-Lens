@@ -1,0 +1,26 @@
+{
+  "cik": 104169,
+  "entityName": "Walmart Inc.",
+  "facts": {
+    "us-gaap": {
+      "SalesRevenueNet": {
+        "units": {"USD": [
+          {"start": "2025-02-01", "end": "2026-01-31", "val": 706413000000, "accn": "0000104169-26-000055", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-03-13", "frame": "CY2025"}
+        ]}
+      },
+      "CostOfRevenue": {
+        "units": {"USD": [
+          {"start": "2025-02-01", "end": "2026-01-31", "val": 535395000000, "accn": "0000104169-26-000055", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-03-13"}
+        ]}
+      },
+      "InventoryNet": {"units": {"USD": [
+        {"end": "2026-01-31", "val": 58851000000, "accn": "0000104169-26-000055", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-03-13"}
+      ]}}
+    },
+    "wmt": {
+      "MembershipAndOtherIncome": {"units": {"USD": [
+        {"start": "2025-02-01", "end": "2026-01-31", "val": 6750000000, "accn": "0000104169-26-000055", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-03-13"}
+      ]}}
+    }
+  }
+}

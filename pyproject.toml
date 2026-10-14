@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "retailscope"
+version = "1.0.0"
+description = "Auditable SEC pipeline and dashboard for retail financial performance and working capital"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "alembic==1.18.5",
+  "httpx==0.28.1",
+  "lxml==6.0.2",
+  "pandas==2.3.3",
+  "plotly==6.7.0",
+  "psycopg[binary]==3.2.12",
+  "pydantic-settings==2.11.0",
+  "PyYAML==6.0.3",
+  "SQLAlchemy==2.0.51",
+  "streamlit==1.57.0",
+  "tenacity==9.1.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.5", "pytest-cov==6.0.0"]
+
+[project.scripts]
+financial-analysis = "financial_analysis.cli:main"
+retailscope = "financial_analysis.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]

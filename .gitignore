@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+.pgdata/
+.pgsocket/
+.streamlit/secrets.toml
+data/raw/**
+!data/raw/.gitkeep
+data/staged/**
+!data/staged/.gitkeep

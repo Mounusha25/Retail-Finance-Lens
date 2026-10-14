@@ -1,0 +1,2 @@
+-- The canonical schema is managed by SQLAlchemy/Alembic.
+-- Run `alembic upgrade head` or any pipeline load command to create it.

@@ -1,0 +1,22 @@
+{
+  "cik": 909832,
+  "entityName": "Costco Wholesale Corporation",
+  "facts": {
+    "cost": {
+      "NetSales": {"units": {"USD": [
+        {"start": "2025-09-01", "end": "2026-08-30", "val": 297247000000, "accn": "0000909832-26-000093", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-10-07"}
+      ]}},
+      "MembershipFees": {"units": {"USD": [
+        {"start": "2025-09-01", "end": "2026-08-30", "val": 5907000000, "accn": "0000909832-26-000093", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-10-07"}
+      ]}},
+      "MerchandiseCosts": {"units": {"USD": [
+        {"start": "2025-09-01", "end": "2026-08-30", "val": 264279000000, "accn": "0000909832-26-000093", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-10-07"}
+      ]}}
+    },
+    "us-gaap": {
+      "InventoryNet": {"units": {"USD": [
+        {"end": "2026-08-30", "val": 19324000000, "accn": "0000909832-26-000093", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-10-07"}
+      ]}}
+    }
+  }
+}

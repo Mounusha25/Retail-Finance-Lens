@@ -1,0 +1,10 @@
+.env
+.git
+.pytest_cache
+**/__pycache__
+*.pyc
+.pgdata
+.pgsocket
+data/raw
+data/staged
+reports/*.md

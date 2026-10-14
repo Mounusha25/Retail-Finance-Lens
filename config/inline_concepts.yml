@@ -1,0 +1,51 @@
+rules:
+  # Company Facts omits dimensional revenue breakouts. These rules extract the
+  # audited components from each filing's inline-XBRL primary document.
+  - company: COST
+    canonical: total_revenue
+    taxonomy: us-gaap
+    concept: RevenueFromContractWithCustomerExcludingAssessedTax
+    dimensions: none
+  - company: COST
+    canonical: net_sales
+    taxonomy: us-gaap
+    concept: RevenueFromContractWithCustomerExcludingAssessedTax
+    member_any: [us-gaap:ProductMember]
+  - company: COST
+    canonical: membership_other_revenue
+    taxonomy: us-gaap
+    concept: RevenueFromContractWithCustomerExcludingAssessedTax
+    member_any: [us-gaap:MembershipMember]
+
+  - company: TGT
+    canonical: total_revenue
+    taxonomy: us-gaap
+    concept: RevenueFromContractWithCustomerExcludingAssessedTax
+    dimensions: none
+  - company: TGT
+    canonical: net_sales
+    taxonomy: us-gaap
+    concept: RevenueFromContractWithCustomerExcludingAssessedTax
+    member_any: [us-gaap:ProductMember]
+  - company: TGT
+    canonical: membership_other_revenue
+    taxonomy: us-gaap
+    concept: RevenueFromContractWithCustomerExcludingAssessedTax
+    member_any:
+      - tgt:AdvertisingRevenueMember
+      - tgt:CreditCardProfitSharingMember
+      - tgt:CreditCardRevenueMember
+      - tgt:OtherOtherRevenueMember
+      - tgt:OtherRevenueMember
+    aggregate_members: true
+
+  - company: WMT
+    canonical: net_sales
+    taxonomy: us-gaap
+    concept: RevenueFromContractWithCustomerExcludingAssessedTax
+    dimensions: none
+  - company: WMT
+    canonical: membership_other_revenue
+    taxonomy: us-gaap
+    concept: OtherIncome
+    dimensions: none

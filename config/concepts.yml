@@ -1,0 +1,124 @@
+concepts:
+  net_sales:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: SalesRevenueNet, priority: 10}
+      - {taxonomy: us-gaap, concept: RevenueFromContractWithCustomerExcludingAssessedTax, priority: 20}
+      - {taxonomy: cost, concept: NetSales, priority: 5, company: COST}
+      - {taxonomy: tgt, concept: Sales, priority: 5, company: TGT}
+  membership_other_revenue:
+    period_type: duration
+    aliases:
+      - {taxonomy: cost, concept: MembershipFees, priority: 5, company: COST}
+      - {taxonomy: wmt, concept: MembershipAndOtherIncome, priority: 5, company: WMT}
+      - {taxonomy: tgt, concept: OtherRevenue, priority: 5, company: TGT}
+  total_revenue:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: Revenues, priority: 10}
+      - {taxonomy: us-gaap, concept: RevenueFromContractWithCustomerIncludingAssessedTax, priority: 20}
+      - {taxonomy: cost, concept: TotalRevenue, priority: 5, company: COST}
+  cost_of_sales:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: CostOfRevenue, priority: 10}
+      - {taxonomy: us-gaap, concept: CostOfGoodsAndServicesSold, priority: 20}
+      - {taxonomy: cost, concept: MerchandiseCosts, priority: 5, company: COST}
+      - {taxonomy: wmt, concept: CostOfSales, priority: 5, company: WMT}
+      - {taxonomy: tgt, concept: CostOfSales, priority: 5, company: TGT}
+  operating_income:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: OperatingIncomeLoss, priority: 10}
+  net_income:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: NetIncomeLoss, priority: 10}
+      - {taxonomy: us-gaap, concept: ProfitLoss, priority: 20}
+  cash_and_cash_equivalents:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: CashAndCashEquivalentsAtCarryingValue, priority: 10}
+      - {taxonomy: us-gaap, concept: CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents, priority: 20}
+  short_term_investments:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: ShortTermInvestments, priority: 10}
+      - {taxonomy: us-gaap, concept: MarketableSecuritiesCurrent, priority: 20}
+  accounts_receivable_net_current:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: AccountsReceivableNetCurrent, priority: 10}
+      - {taxonomy: us-gaap, concept: AccountsNotesAndLoansReceivableNetCurrent, priority: 20}
+      - {taxonomy: us-gaap, concept: ReceivablesNetCurrent, priority: 30}
+      - {taxonomy: us-gaap, concept: AccountsAndOtherReceivablesNetCurrent, priority: 5, company: TGT}
+  inventory:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: InventoryNet, priority: 10}
+      - {taxonomy: us-gaap, concept: InventoryFinishedGoodsNetOfAllowancesCustomerAdvancesAndProgressBillings, priority: 20}
+  current_assets:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: AssetsCurrent, priority: 10}
+  accounts_payable_current:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: AccountsPayableCurrent, priority: 10}
+  current_debt:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: ShortTermBorrowings, priority: 10}
+      - {taxonomy: us-gaap, concept: LongTermDebtCurrent, priority: 20}
+      - {taxonomy: us-gaap, concept: ShortTermBorrowingsAndCurrentMaturitiesOfLongTermDebt, priority: 30}
+  current_liabilities:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: LiabilitiesCurrent, priority: 10}
+  long_term_debt_noncurrent:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: LongTermDebtNoncurrent, priority: 10}
+      - {taxonomy: us-gaap, concept: LongTermDebtAndFinanceLeaseObligationsNoncurrent, priority: 20}
+  total_assets:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: Assets, priority: 10}
+  total_liabilities:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: Liabilities, priority: 10}
+  total_equity:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest, priority: 10}
+      - {taxonomy: us-gaap, concept: StockholdersEquity, priority: 20}
+  operating_cash_flow:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: NetCashProvidedByUsedInOperatingActivities, priority: 10}
+      - {taxonomy: us-gaap, concept: NetCashProvidedByUsedInOperatingActivitiesContinuingOperations, priority: 20}
+  capital_expenditures:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      - {taxonomy: us-gaap, concept: PaymentsToAcquirePropertyPlantAndEquipment, priority: 10}
+      - {taxonomy: us-gaap, concept: PaymentsForAdditionsToPropertyPlantAndEquipment, priority: 20}
+  investing_cash_flow:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: NetCashProvidedByUsedInInvestingActivities, priority: 10}
+  financing_cash_flow:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: NetCashProvidedByUsedInFinancingActivities, priority: 10}
+  fx_effect_on_cash:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: EffectOfExchangeRateOnCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents, priority: 10}
+      - {taxonomy: us-gaap, concept: EffectOfExchangeRateOnCashAndCashEquivalents, priority: 20}
+  net_change_in_cash:
+    period_type: duration
+    aliases:
+      - {taxonomy: us-gaap, concept: CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect, priority: 10}
+      - {taxonomy: us-gaap, concept: CashAndCashEquivalentsPeriodIncreaseDecrease, priority: 20}

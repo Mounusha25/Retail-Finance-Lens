@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16.10-alpine
+    environment:
+      POSTGRES_DB: financial_analysis
+      POSTGRES_USER: financial
+      POSTGRES_PASSWORD: financial
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financial -d financial_analysis"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  dashboard:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://financial:financial@db:5432/financial_analysis
+    ports:
+      - "8501:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  pipeline:
+    build: .
+    profiles: ["pipeline"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://financial:financial@db:5432/financial_analysis
+      DATABASE_WRITE_URL: postgresql+psycopg://financial:financial@db:5432/financial_analysis
+      SEC_USER_AGENT: ${SEC_USER_AGENT:-}
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["financial-analysis", "refresh", "--companies", "all"]
+
+volumes:
+  postgres_data:

@@ -1,0 +1,28 @@
+name: Refresh SEC financial data
+
+on:
+  schedule:
+    - cron: "0 13 * * 1" # Monday 06:00 America/Phoenix (UTC-7 year-round)
+  workflow_dispatch:
+
+concurrency:
+  group: sec-financial-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt && pip install --no-deps -e .
+      - name: Refresh PostgreSQL dataset
+        env:
+          DATABASE_WRITE_URL: ${{ secrets.DATABASE_WRITE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_WRITE_URL }}
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+        run: financial-analysis refresh --companies all

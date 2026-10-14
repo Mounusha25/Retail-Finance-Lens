@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">RetailScope financial analytics platform architecture</title>
+  <desc id="desc">SEC filing data flows through an auditable Python ingestion and transformation pipeline into PostgreSQL analytical views, then into a read-only Streamlit dashboard and evidence-backed report.</desc>
+  <defs>
+    <linearGradient id="header" x1="0" x2="1">
+      <stop offset="0" stop-color="#162b43"/>
+      <stop offset="0.55" stop-color="#19475a"/>
+      <stop offset="1" stop-color="#2d766a"/>
+    </linearGradient>
+    <linearGradient id="source" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf5f2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="process" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#edf3ff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#13283e" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7184"/>
+    </marker>
+    <style>
+      .title { font: 700 36px Inter, ui-sans-serif, system-ui, sans-serif; fill: #fff; }
+      .subtitle { font: 400 17px Inter, ui-sans-serif, system-ui, sans-serif; fill: #d9ebe7; }
+      .eyebrow { font: 700 12px Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: 2px; fill: #78c8b7; }
+      .stage { font: 700 13px Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: 1.4px; fill: #637487; }
+      .stage-title { font: 700 23px Inter, ui-sans-serif, system-ui, sans-serif; fill: #14243a; }
+      .card-title { font: 700 15px Inter, ui-sans-serif, system-ui, sans-serif; fill: #1b2c42; }
+      .body { font: 400 13px Inter, ui-sans-serif, system-ui, sans-serif; fill: #526274; }
+      .body-light { font: 400 13px Inter, ui-sans-serif, system-ui, sans-serif; fill: #e6f0f3; }
+      .small { font: 500 11px Inter, ui-sans-serif, system-ui, sans-serif; fill: #6c7c8c; }
+      .pill { font: 700 11px Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: .5px; }
+      .mono { font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #35506a; }
+      .flow { stroke: #5b7184; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f3f7f6"/>
+  <rect x="55" y="42" width="1490" height="150" rx="30" fill="url(#header)" filter="url(#shadow)"/>
+  <text x="100" y="82" class="eyebrow">END-TO-END DATA PRODUCT</text>
+  <text x="100" y="128" class="title">RetailScope · Financial Performance &amp; Working Capital</text>
+  <text x="100" y="163" class="subtitle">Auditable SEC ingestion → accounting-aware transformation → SQL analytics → decision-ready delivery</text>
+  <rect x="1240" y="78" width="250" height="72" rx="18" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.2"/>
+  <text x="1264" y="106" class="eyebrow" fill="#d8eee8">ANALYSIS UNIVERSE</text>
+  <text x="1264" y="136" style="font:700 18px Inter,system-ui,sans-serif;fill:#fff">WMT · TGT · COST</text>
+
+  <!-- Flow arrows -->
+  <path d="M328 513 H370" class="flow"/>
+  <path d="M626 513 H668" class="flow"/>
+  <path d="M924 513 H966" class="flow"/>
+  <path d="M1222 513 H1264" class="flow"/>
+
+  <!-- Stage 1 -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="230" width="258" height="600" rx="24" fill="url(#source)" stroke="#d9e8e4"/>
+  </g>
+  <rect x="70" y="230" width="258" height="8" rx="4" fill="#3d9b88"/>
+  <text x="94" y="275" class="stage">01 · SOURCE</text>
+  <text x="94" y="310" class="stage-title">SEC EDGAR</text>
+  <text x="94" y="337" class="body">Authoritative public-company data</text>
+
+  <rect x="94" y="372" width="210" height="82" rx="14" fill="#fff" stroke="#d7e4e1"/>
+  <circle cx="116" cy="396" r="8" fill="#3d9b88"/>
+  <text x="134" y="401" class="card-title">Submissions</text>
+  <text x="112" y="426" class="body">Filing dates, forms, accession</text>
+  <text x="112" y="444" class="body">numbers and primary documents</text>
+
+  <rect x="94" y="468" width="210" height="82" rx="14" fill="#fff" stroke="#d7e4e1"/>
+  <circle cx="116" cy="492" r="8" fill="#3d9b88"/>
+  <text x="134" y="497" class="card-title">Company Facts</text>
+  <text x="112" y="522" class="body">Standardized US-GAAP history</text>
+  <text x="112" y="540" class="body">across filings and periods</text>
+
+  <rect x="94" y="564" width="210" height="98" rx="14" fill="#fff" stroke="#d7e4e1"/>
+  <circle cx="116" cy="588" r="8" fill="#e4a93a"/>
+  <text x="134" y="593" class="card-title">Inline XBRL</text>
+  <text x="112" y="618" class="body">Product, membership, ads and</text>
+  <text x="112" y="636" class="body">other-revenue dimensions omitted</text>
+  <text x="112" y="654" class="body">from the Company Facts API</text>
+
+  <rect x="94" y="696" width="210" height="88" rx="14" fill="#163349"/>
+  <text x="112" y="723" class="pill" fill="#82d0be">ACCESS POLICY</text>
+  <text x="112" y="748" class="body-light">Identified user agent</text>
+  <text x="112" y="768" class="body-light">5 requests/sec · retry/backoff</text>
+
+  <!-- Stage 2 -->
+  <g filter="url(#shadow)">
+    <rect x="370" y="230" width="256" height="600" rx="24" fill="url(#process)" stroke="#dce4f3"/>
+  </g>
+  <rect x="370" y="230" width="256" height="8" rx="4" fill="#4670df"/>
+  <text x="394" y="275" class="stage">02 · INGEST &amp; PRESERVE</text>
+  <text x="394" y="310" class="stage-title">Python pipeline</text>
+  <text x="394" y="337" class="body">Repeatable, immutable acquisition</text>
+
+  <rect x="394" y="372" width="208" height="100" rx="14" fill="#fff" stroke="#dce4f3"/>
+  <text x="414" y="400" class="card-title">HTTPX extraction</text>
+  <text x="414" y="425" class="body">One command: ingest → transform</text>
+  <text x="414" y="445" class="body">→ load → validate</text>
+  <text x="414" y="462" class="mono">financial-analysis refresh</text>
+
+  <rect x="394" y="488" width="208" height="106" rx="14" fill="#fff" stroke="#dce4f3"/>
+  <text x="414" y="516" class="card-title">Dual raw preservation</text>
+  <text x="414" y="541" class="body">Timestamped gzip files</text>
+  <text x="414" y="560" class="body">+ compressed database body</text>
+  <text x="414" y="579" class="mono">URL · headers · status</text>
+  <text x="414" y="592" class="mono">SHA-256 · fetched_at</text>
+
+  <rect x="394" y="610" width="208" height="100" rx="14" fill="#fff" stroke="#dce4f3"/>
+  <text x="414" y="638" class="card-title">Idempotent loading</text>
+  <text x="414" y="663" class="body">Unique keys + conflict-safe upserts</text>
+  <text x="414" y="682" class="body">retain every filing version</text>
+  <rect x="414" y="726" width="166" height="36" rx="18" fill="#e8eefc"/>
+  <text x="432" y="749" class="pill" fill="#355fc7">100 FILINGS · 76 PAYLOADS</text>
+
+  <!-- Stage 3 -->
+  <g filter="url(#shadow)">
+    <rect x="668" y="230" width="256" height="600" rx="24" fill="#fff" stroke="#e5e0d5"/>
+  </g>
+  <rect x="668" y="230" width="256" height="8" rx="4" fill="#e2a63a"/>
+  <text x="692" y="275" class="stage">03 · STANDARDIZE</text>
+  <text x="692" y="310" class="stage-title">Accounting logic</text>
+  <text x="692" y="337" class="body">Comparable without hiding nuance</text>
+
+  <rect x="692" y="372" width="208" height="118" rx="14" fill="#fffaf1" stroke="#eadcbe"/>
+  <text x="712" y="400" class="card-title">Configurable mappings</text>
+  <text x="712" y="425" class="body">Canonical concepts + issuer aliases</text>
+  <text x="712" y="445" class="body">USD · full dollars · null preserved</text>
+  <text x="712" y="468" class="mono">concepts.yml · inline_concepts.yml</text>
+
+  <rect x="692" y="506" width="208" height="116" rx="14" fill="#fffaf1" stroke="#eadcbe"/>
+  <text x="712" y="534" class="card-title">Fiscal-period engine</text>
+  <text x="712" y="559" class="body">Actual dates and day counts</text>
+  <text x="712" y="578" class="body">52/53-week flag retained</text>
+  <text x="712" y="599" class="mono">Q2/Q3 = YTD − predecessor</text>
+  <text x="712" y="614" class="mono">Q4 = FY − Q3 YTD</text>
+
+  <rect x="692" y="638" width="208" height="106" rx="14" fill="#f2f8f6" stroke="#d5e7e2"/>
+  <text x="712" y="666" class="card-title">Validation gate</text>
+  <text x="712" y="691" class="body">Accounting + cash reconciliation</text>
+  <text x="712" y="710" class="body">coverage + missing-field checks</text>
+  <rect x="702" y="758" width="188" height="36" rx="18" fill="#dff2ec"/>
+  <text x="712" y="781" style="font:700 10px Inter,system-ui,sans-serif;letter-spacing:.25px;fill:#257c68">89 PASS · 12 WARN · 0 ERROR</text>
+
+  <!-- Stage 4 -->
+  <g filter="url(#shadow)">
+    <rect x="966" y="230" width="256" height="600" rx="24" fill="#fff" stroke="#d9e4e8"/>
+  </g>
+  <rect x="966" y="230" width="256" height="8" rx="4" fill="#2b7c8a"/>
+  <text x="990" y="275" class="stage">04 · MODEL &amp; ANALYZE</text>
+  <text x="990" y="310" class="stage-title">PostgreSQL</text>
+  <text x="990" y="337" class="body">One trusted analytical contract</text>
+
+  <rect x="990" y="372" width="208" height="152" rx="14" fill="#f2f8f9" stroke="#d4e4e7"/>
+  <text x="1010" y="400" class="card-title">Canonical storage</text>
+  <text x="1010" y="426" class="mono">companies · filings</text>
+  <text x="1010" y="447" class="mono">financial_facts</text>
+  <text x="1010" y="468" class="mono">concept_mappings</text>
+  <text x="1010" y="489" class="mono">source_payloads</text>
+  <text x="1010" y="510" class="mono">validation_results</text>
+
+  <rect x="990" y="540" width="208" height="152" rx="14" fill="#f2f8f9" stroke="#d4e4e7"/>
+  <text x="1010" y="568" class="card-title">Analytics schema</text>
+  <text x="1010" y="594" class="mono">v_annual_metrics</text>
+  <text x="1010" y="615" class="mono">v_quarterly_metrics</text>
+  <text x="1010" y="636" class="mono">v_peer_comparison</text>
+  <text x="1010" y="657" class="mono">v_data_quality</text>
+  <text x="1010" y="681" class="small">CTEs · windows · average balances</text>
+
+  <rect x="990" y="710" width="208" height="72" rx="14" fill="#17364b"/>
+  <text x="1010" y="738" class="pill" fill="#82d0be">SEPARATION OF CONCERNS</text>
+  <text x="1010" y="762" style="font:400 12px Inter,system-ui,sans-serif;fill:#e6f0f3">All financial formulas live in SQL</text>
+
+  <!-- Stage 5 -->
+  <g filter="url(#shadow)">
+    <rect x="1264" y="230" width="266" height="600" rx="24" fill="#fff" stroke="#d9e8e4"/>
+  </g>
+  <rect x="1264" y="230" width="266" height="8" rx="4" fill="#3d9b88"/>
+  <text x="1288" y="275" class="stage">05 · SERVE &amp; AUTOMATE</text>
+  <text x="1288" y="310" class="stage-title">Decision layer</text>
+  <text x="1288" y="337" class="body">Analysis made usable and repeatable</text>
+
+  <rect x="1288" y="372" width="218" height="120" rx="14" fill="#f2f8f6" stroke="#d5e7e2"/>
+  <text x="1308" y="400" class="card-title">Streamlit + Plotly</text>
+  <text x="1308" y="425" class="body">Executive · peer · working capital</text>
+  <text x="1308" y="444" class="body">company trends · methodology</text>
+  <rect x="1308" y="459" width="148" height="22" rx="11" fill="#dff2ec"/>
+  <text x="1321" y="475" class="pill" fill="#257c68">READ-ONLY DATABASE</text>
+
+  <rect x="1288" y="508" width="218" height="92" rx="14" fill="#fffaf1" stroke="#eadcbe"/>
+  <text x="1308" y="536" class="card-title">Analyst report</text>
+  <text x="1308" y="561" class="body">Findings · implications · evidence</text>
+  <text x="1308" y="580" class="body">investigations · limitations</text>
+
+  <rect x="1288" y="616" width="218" height="106" rx="14" fill="#f0f4fc" stroke="#dce4f3"/>
+  <text x="1308" y="644" class="card-title">Delivery</text>
+  <text x="1308" y="669" class="body">Docker Compose locally</text>
+  <text x="1308" y="688" class="body">Neon + Streamlit Cloud ready</text>
+  <text x="1308" y="707" class="body">GitHub Actions every Monday</text>
+
+  <rect x="1288" y="738" width="218" height="44" rx="14" fill="#17364b"/>
+  <text x="1397" y="765" text-anchor="middle" style="font:700 10px Inter,system-ui,sans-serif;letter-spacing:.25px;fill:#fff">5 YEARS · 12 QUARTERS · 3 RETAILERS</text>
+
+  <!-- Governance rail -->
+  <rect x="70" y="874" width="1460" height="78" rx="22" fill="#e7efee" stroke="#cfddda"/>
+  <text x="96" y="905" class="stage">GOVERNANCE &amp; LINEAGE</text>
+  <text x="96" y="932" class="body">Every dashboard value resolves to a canonical fact, accession, period, source concept and primary filing.</text>
+  <line x1="770" y1="892" x2="770" y2="936" stroke="#c7d5d3"/>
+  <circle cx="812" cy="913" r="12" fill="#4670df"/>
+  <text x="836" y="908" class="card-title">Writer credentials</text>
+  <text x="836" y="928" class="small">pipeline + scheduled refresh</text>
+  <circle cx="1115" cy="913" r="12" fill="#3d9b88"/>
+  <text x="1139" y="908" class="card-title">Reader credentials</text>
+  <text x="1139" y="928" class="small">dashboard analytical views only</text>
+</svg>

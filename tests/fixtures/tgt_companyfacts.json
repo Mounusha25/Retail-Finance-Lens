@@ -1,0 +1,17 @@
+{
+  "cik": 27419,
+  "entityName": "Target Corporation",
+  "facts": {
+    "us-gaap": {
+      "SalesRevenueNet": {"units": {"USD": [
+        {"start": "2025-02-02", "end": "2026-01-31", "val": 104780000000, "accn": "0000027419-26-000016", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-11"}
+      ]}},
+      "CostOfRevenue": {"units": {"USD": [
+        {"start": "2025-02-02", "end": "2026-01-31", "val": 75511000000, "accn": "0000027419-26-000016", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-11"}
+      ]}},
+      "InventoryNet": {"units": {"USD": [
+        {"end": "2026-01-31", "val": 12304000000, "accn": "0000027419-26-000016", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-11"}
+      ]}}
+    }
+  }
+}
