@@ -1,8 +1,18 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
+# Streamlit Community Cloud executes this file with ``app/`` as the import
+# root. Add the repository root explicitly so ``app`` resolves identically in
+# local, Docker, and hosted environments.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.data import latest_periods, load_or_stop
 from app.ui import (
