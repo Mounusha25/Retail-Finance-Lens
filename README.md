@@ -113,7 +113,7 @@ A dark, equity-research-style workspace with a live ticker tape (latest sales gr
 9. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
 10. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
 
-**Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within six pillars (growth, profitability, efficiency, cash, returns, balance sheet) and combined with weights you can change. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
+**Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within six pillars (growth, profitability, efficiency, cash, returns, balance sheet) and combined with weights you can change. A robustness panel re-runs the ranking under named and random weightings and reports how often each company leads. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
 
 The app reads only `analytics.v_annual_metrics`, `analytics.v_quarterly_metrics`, `analytics.v_peer_comparison`, and `analytics.v_data_quality`. Financial formulas do not live in dashboard code.
 

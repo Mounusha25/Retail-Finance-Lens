@@ -24,7 +24,7 @@ annual = latest_periods(load_or_stop("annual"), 5)
 latest = annual.sort_values("period_end").groupby("ticker", as_index=False).tail(1)
 
 metric_groups = {
-    "Growth & profitability": ["revenue_growth", "gross_margin", "operating_margin", "net_margin"],
+    "Growth & profitability": ["revenue_growth", "gross_margin", "operating_margin", "adjusted_operating_margin", "net_margin"],
     "Cash generation": ["ocf_to_net_income", "free_cash_flow", "operating_cash_flow"],
     "Liquidity": ["current_ratio", "quick_ratio", "total_debt"],
 }

@@ -36,7 +36,7 @@ FACTS = {
         "total_assets": 700, "total_equity": 220, "stockholders_equity": 210,
         "income_tax_expense": 15,
         "dividends_paid": 12, "share_repurchases": 8, "debt_issued": 30, "debt_repaid": 10,
-        "depreciation_amortization": 20, "interest_paid": 6,
+        "depreciation_amortization": 20, "interest_paid": 6, "restructuring_impairment_charges": 12,
         "operating_lease_liability": 80, "operating_lease_discount_rate": 0.05,
     },
 }
@@ -44,7 +44,7 @@ DURATION = {
     "net_sales", "membership_other_revenue", "cost_of_sales", "operating_income",
     "net_income", "operating_cash_flow", "capital_expenditures", "income_tax_expense",
     "dividends_paid", "share_repurchases", "debt_issued", "debt_repaid",
-    "depreciation_amortization", "interest_paid",
+    "depreciation_amortization", "interest_paid", "restructuring_impairment_charges",
 }
 FISCAL_DAYS = {YEAR_1: 366, YEAR_2: 365}
 
@@ -356,3 +356,38 @@ def test_ltm_ebitda_net_debt_and_coverage(ltm_connection):
     assert row["net_debt"] == 70                      # debt 100 - cash 30
     assert row["net_debt_to_ebitda"] == pytest.approx(70 / 56)
     assert row["interest_coverage"] == pytest.approx(40 / 8)
+
+
+def test_adjusted_operating_margin_adds_back_tagged_charges(seeded):
+    tagged = _latest(seeded, "ZZA")
+    assert tagged["has_tagged_charges"] is True
+    assert tagged["adjusted_operating_income"] == 72           # 60 + 12
+    assert tagged["adjusted_operating_margin"] == pytest.approx(72 / 1200)
+    assert tagged["adjusted_operating_margin"] > tagged["operating_margin"]
+
+
+def test_untagged_issuer_is_left_unadjusted_and_flagged(seeded):
+    # ZZB shares ZZA's facts but is seeded the same way; remove its charge to model an untagged issuer.
+    seeded.execute(
+        text(
+            "DELETE FROM financial_facts WHERE canonical_concept = 'restructuring_impairment_charges' "
+            "AND company_id = (SELECT id FROM companies WHERE ticker = 'ZZB')"
+        )
+    )
+    row = _latest(seeded, "ZZB")
+    assert row["has_tagged_charges"] is False
+    assert row["adjusted_operating_income"] == row["operating_income"]
+    assert row["adjusted_operating_margin"] == pytest.approx(row["operating_margin"])
+
+
+def test_ltm_charges_sum_only_the_quarters_that_report_one(ltm_connection):
+    company_id = ltm_connection.execute(text("SELECT id FROM companies WHERE ticker = 'ZZL'")).scalar_one()
+    _insert(ltm_connection, company_id, "ZZL", "restructuring_impairment_charges", 4,
+            date(2025, 7, 1), date(2025, 9, 30), "quarterly", 92)
+    row = _ltm(ltm_connection, "ZZL")
+    assert row["restructuring_impairment_charges"] == 4
+    assert row["adjusted_operating_income"] == 44              # 40 + 4
+    assert row["has_tagged_charges"] is True
+    untagged = _ltm(ltm_connection, "ZZG")
+    assert untagged["has_tagged_charges"] is False
+    assert untagged["adjusted_operating_income"] == untagged["operating_income"]

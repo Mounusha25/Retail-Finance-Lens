@@ -33,6 +33,7 @@ FLOW_CONCEPTS = {
     "debt_repaid",
     "depreciation_amortization",
     "interest_paid",
+    "restructuring_impairment_charges",
 }
 
 

@@ -52,6 +52,13 @@ Every fact includes the accession number, taxonomy and source concept, raw and n
 | Implied lease interest | Average operating lease liability × the weighted-average operating-lease discount rate the company discloses |
 | Lease-adjusted ROIC | (Operating income + implied lease interest) × (1 − tax rate) ÷ average (invested capital + operating lease liability) |
 
+| Restructuring & impairment charges | One tagged line per period (restructuring-and-impairment total, else asset impairment, else goodwill impairment); never summed across concepts |
+| Adjusted operating income | Operating income + tagged restructuring and impairment charges; unadjusted when none are tagged (`has_tagged_charges` is false) |
+| Adjusted operating margin | Adjusted operating income ÷ total revenue |
+
+On the trailing-twelve-month basis the charge is the sum of the quarters that report one (such charges are sparse by
+nature), so an untagged quarter contributes nothing and is not an error.
+
 DuPont identity: net margin × asset turnover × equity multiplier = return on equity. Invested capital excludes operating-lease liabilities; Target's debt tag includes finance leases.
 
 Missing inputs produce a null metric. The pipeline does not infer an undisclosed component as zero.

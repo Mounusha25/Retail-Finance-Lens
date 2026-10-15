@@ -184,6 +184,15 @@ concepts:
     unit: pure
     aliases:
       - {taxonomy: us-gaap, concept: OperatingLeaseWeightedAverageDiscountRatePercent, priority: 10}
+  # Single-line restructuring / impairment totals as tagged by the issuer. Only one concept is chosen per period
+  # (by priority), so charges are never double counted. Untagged charges are not captured.
+  restructuring_impairment_charges:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      - {taxonomy: us-gaap, concept: RestructuringCostsAndAssetImpairmentCharges, priority: 10}
+      - {taxonomy: us-gaap, concept: AssetImpairmentCharges, priority: 20}
+      - {taxonomy: us-gaap, concept: GoodwillImpairmentLoss, priority: 30}
   investing_cash_flow:
     period_type: duration
     aliases:

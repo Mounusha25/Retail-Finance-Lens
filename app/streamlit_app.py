@@ -15,7 +15,9 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.data import latest_periods, load_or_stop
-from app.scoring import DEFAULT_WEIGHTS, PILLARS, latest_and_prior, pillar_leaders, score_peers, with_fcf_margin
+from app.scoring import (
+    DEFAULT_WEIGHTS, PILLARS, latest_and_prior, pillar_leaders, score_peers, sensitivity, with_fcf_margin,
+)
 from app.ui import (
     CHART_CONFIG, COMPANY_COLORS, LABELS, TONES, _fmt_delta, format_value, kpi_grid, page_setup, rank_heatmap,
     score_table, section, style_figure, verdict,
@@ -135,6 +137,7 @@ rank_heatmap(
         ("revenue_growth", "Sales growth", True),
         ("gross_margin", "Gross margin", True),
         ("operating_margin", "Operating margin", True),
+        ("adjusted_operating_margin", "Adj. op. margin", True),
         ("fcf_margin", "FCF margin", True),
         ("inventory_turnover", "Inventory turns", True),
         ("cash_conversion_cycle", "Cash cycle", False),
@@ -145,7 +148,45 @@ rank_heatmap(
         ("interest_coverage", "Interest coverage", True),
     ],
 )
-st.caption("Kroger's cost of sales excludes depreciation and rent-type items, so its gross margin is not strictly comparable.")
+st.caption(
+    "Kroger's cost of sales excludes depreciation and rent-type items, so its gross margin is not strictly comparable. "
+    "Adjusted operating margin adds back tagged restructuring and impairment charges; issuers that tag none are shown unadjusted."
+)
+
+section(
+    "How robust is the ranking?",
+    "The composite is re-computed under named emphasis scenarios and hundreds of random weightings.",
+    "Sensitivity",
+)
+robustness = sensitivity(peer)
+summary = robustness["summary"]
+leader_row = summary.iloc[0]
+st.markdown(
+    f"**{leader_row['ticker']} ranks first in {leader_row['Share of weightings led']:.0%} of {robustness['scenarios']} weightings** "
+    f"(best rank {int(leader_row['Best rank'])}, worst rank {int(leader_row['Worst rank'])})."
+)
+left, right = st.columns([1, 1.2])
+with left:
+    st.dataframe(
+        summary, hide_index=True, width="stretch",
+        column_config={
+            "ticker": "Company",
+            "Share of weightings led": st.column_config.ProgressColumn("Leads in", format="percent", min_value=0, max_value=1),
+            "Best rank": st.column_config.NumberColumn(format="%d"),
+            "Worst rank": st.column_config.NumberColumn(format="%d"),
+            "Average rank": st.column_config.NumberColumn(format="%.2f"),
+        },
+    )
+with right:
+    st.dataframe(
+        robustness["named"], hide_index=True, width="stretch",
+        column_config={"Lead (points)": st.column_config.NumberColumn("Lead over runner-up (points)", format="%.1f")},
+    )
+st.caption(
+    "Random weightings are drawn uniformly from all weight combinations across the six pillars (fixed seed). A leader that "
+    "wins nearly all of them is robust; a small lead that flips under one emphasis is a judgement call."
+)
+
 
 section("Peer scorecard", "Compare current performance across the metrics most relevant to finance leadership.")
 profit_tab, cash_tab, operations_tab = st.tabs(["Growth & margins", "Cash conversion", "Working capital"])

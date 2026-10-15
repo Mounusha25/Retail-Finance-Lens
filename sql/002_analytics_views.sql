@@ -67,7 +67,8 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'depreciation_amortization') AS depreciation_amortization,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'interest_paid') AS interest_paid,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_liability') AS operating_lease_liability,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'restructuring_impairment_charges') AS restructuring_impairment_charges
     FROM annual_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -145,6 +146,11 @@ SELECT
          THEN (current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0) - cash_and_cash_equivalents)
               / (operating_income + depreciation_amortization) END AS net_debt_to_ebitda,
     operating_income / NULLIF(interest_paid, 0) AS interest_coverage,
+    -- Operating income before tagged restructuring and impairment charges. Issuers that tag none are left
+    -- unadjusted, which is the absence of a tag, not proof that no charges occurred.
+    operating_income + COALESCE(restructuring_impairment_charges, 0) AS adjusted_operating_income,
+    (operating_income + COALESCE(restructuring_impairment_charges, 0)) / NULLIF(total_revenue, 0) AS adjusted_operating_margin,
+    restructuring_impairment_charges IS NOT NULL AS has_tagged_charges,
     current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0) + operating_lease_liability
       AS lease_adjusted_debt,
     -- Implied interest inside operating lease cost = average lease liability x disclosed discount rate.
@@ -219,7 +225,8 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'depreciation_amortization') AS depreciation_amortization,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'interest_paid') AS interest_paid,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_liability') AS operating_lease_liability,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'restructuring_impairment_charges') AS restructuring_impairment_charges
     FROM quarter_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -331,6 +338,7 @@ WITH q AS (
         CASE WHEN count(debt_repaid) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(debt_repaid) FILTER (WHERE rn BETWEEN 1 AND 4) END AS debt_repaid,
         CASE WHEN count(depreciation_amortization) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(depreciation_amortization) FILTER (WHERE rn BETWEEN 1 AND 4) END AS depreciation_amortization,
         CASE WHEN count(interest_paid) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(interest_paid) FILTER (WHERE rn BETWEEN 1 AND 4) END AS interest_paid,
+        sum(restructuring_impairment_charges) FILTER (WHERE rn BETWEEN 1 AND 4) AS restructuring_impairment_charges,
         CASE WHEN count(net_sales) FILTER (WHERE rn BETWEEN 5 AND 8) = 4 THEN sum(net_sales) FILTER (WHERE rn BETWEEN 5 AND 8) END AS prior_net_sales,
         CASE WHEN count(total_revenue) FILTER (WHERE rn BETWEEN 5 AND 8) = 4 THEN sum(total_revenue) FILTER (WHERE rn BETWEEN 5 AND 8) END AS prior_total_revenue,
         max(inventory) FILTER (WHERE rn = 1) AS inventory,
@@ -408,7 +416,10 @@ SELECT
     total_debt - cash_and_cash_equivalents AS net_debt,
     CASE WHEN operating_income + depreciation_amortization > 0
          THEN (total_debt - cash_and_cash_equivalents) / (operating_income + depreciation_amortization) END AS net_debt_to_ebitda,
-    operating_income / NULLIF(interest_paid, 0) AS interest_coverage
+    operating_income / NULLIF(interest_paid, 0) AS interest_coverage,
+    operating_income + COALESCE(restructuring_impairment_charges, 0) AS adjusted_operating_income,
+    (operating_income + COALESCE(restructuring_impairment_charges, 0)) / NULLIF(total_revenue, 0) AS adjusted_operating_margin,
+    restructuring_impairment_charges IS NOT NULL AS has_tagged_charges
 FROM with_flows;
 
 -- Recreating views drops their grants. Re-grant read access to the dashboard role when it exists

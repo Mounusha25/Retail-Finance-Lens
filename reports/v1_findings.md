@@ -81,6 +81,12 @@ COST has net cash of $14.0B, interest coverage 113.4×, and lease adjustment low
 
 **Implication.** Net debt to EBITDA and interest coverage describe capacity to keep returning capital; they matter most for the companies whose payouts already exceed free cash flow. Operating leases are a debt-like obligation that reported ROIC ignores, so lease-adjusted ROIC is the fairer comparison between store-heavy peers and a warehouse-club model with fewer leased sites. Coverage uses cash interest paid, which can be lumpy, and is unavailable on a trailing basis when quarterly filings omit it.
 
+### 9. Earnings quality: reported versus adjusted margins
+
+KR's operating margin was 1.3% as reported and 3.1% before $2.7B of tagged restructuring and impairment charges.
+
+**Implication.** A one-time charge can make an otherwise stable operating business look weak. The adjusted margin is a floor on how much of the decline is structural, not a claim that the charge was unimportant: impairments often signal capital that failed to earn its cost. Only charges the issuer tags as a single restructuring or impairment line are captured, so untagged items (for example litigation settlements) remain inside reported operating income.
+
 ---
 
 ## Five-year direction

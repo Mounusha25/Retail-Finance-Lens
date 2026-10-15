@@ -6,7 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.scoring import latest_and_prior, pillar_leaders, score_peers  # noqa: E402
+from app.scoring import latest_and_prior, pillar_leaders, score_peers, sensitivity  # noqa: E402
 
 
 def _peer():
@@ -87,3 +87,33 @@ def test_balance_sheet_pillar_uses_the_metric_it_has():
     frame["interest_coverage"] = [None, None, None]  # e.g. interest paid not reported
     scores = score_peers(frame).set_index("ticker")
     assert scores.loc["A", "Balance sheet"] == 100   # leverage alone scores the pillar
+
+
+def test_sensitivity_reports_leader_stability():
+    result = sensitivity(_peer(), random_scenarios=200, seed=1)
+    summary = result["summary"].set_index("ticker")
+    assert result["scenarios"] > 200
+    assert summary["Share of weightings led"].sum() == pytest.approx(1.0)
+    assert (summary["Best rank"] <= summary["Worst rank"]).all()
+    named = result["named"].set_index("Scenario")
+    # Each named scenario must agree with an independent run of the public scoring function.
+    pillars = [p for p in ("Growth", "Profitability", "Efficiency", "Cash", "Returns")]
+    for pillar in pillars:
+        weights = {name: 1.0 for name in pillars}
+        weights[pillar] = 3.0
+        expected = score_peers(_peer(), weights).iloc[0]["ticker"]
+        assert named.loc[f"{pillar} weighted 3×", "Leader"] == expected
+    equal = score_peers(_peer(), {name: 1.0 for name in pillars}).iloc[0]["ticker"]
+    assert named.loc["Equal weights", "Leader"] == equal
+
+
+def test_sensitivity_is_reproducible_for_a_seed():
+    first = sensitivity(_peer(), random_scenarios=100, seed=3)["summary"]
+    second = sensitivity(_peer(), random_scenarios=100, seed=3)["summary"]
+    pd.testing.assert_frame_equal(first, second)
+
+
+def test_a_company_that_never_leads_has_zero_share():
+    frame = _peer()
+    result = sensitivity(frame, random_scenarios=50, seed=2)["summary"].set_index("ticker")
+    assert 0.0 <= result["Share of weightings led"].min() <= result["Share of weightings led"].max() <= 1.0

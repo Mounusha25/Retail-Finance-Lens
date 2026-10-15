@@ -36,7 +36,8 @@ CURRENCY_METRICS = {
     "operating_cash_flow", "free_cash_flow", "inventory",
     "cash_and_cash_equivalents", "total_debt", "shareholder_payouts", "dividends_paid", "share_repurchases",
     "net_debt_issuance", "fcf_after_payouts", "capital_expenditures", "ebitda", "net_debt", "lease_adjusted_debt",
-    "implied_lease_interest", "operating_lease_liability",
+    "implied_lease_interest", "operating_lease_liability", "adjusted_operating_income",
+    "restructuring_impairment_charges",
 }
 
 LABELS = {
@@ -66,10 +67,11 @@ LABELS = {
     "effective_tax_rate": "Effective tax rate",
 }
 
-PERCENT_METRICS.update({"fcf_margin", "payout_ratio_fcf", "capex_to_ocf", "ebitda_margin", "lease_adjusted_roic"})
+PERCENT_METRICS.update({"fcf_margin", "payout_ratio_fcf", "capex_to_ocf", "ebitda_margin", "lease_adjusted_roic", "adjusted_operating_margin"})
 LABELS.update({
     "fcf_margin": "FCF margin",
     "payout_ratio_fcf": "Payout / FCF",
+    "adjusted_operating_margin": "Adjusted operating margin",
     "ebitda": "EBITDA",
     "ebitda_margin": "EBITDA margin",
     "net_debt": "Net debt",
@@ -161,7 +163,7 @@ p, li, label, span { color:inherit; }
 .section-copy { color:var(--muted); font-size:.8rem; margin:0 0 .8rem; }
 
 /* KPI cards */
-.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px; background:var(--line);
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:1px; background:var(--line);
   border:1px solid var(--line); margin:.5rem 0 1.2rem; }
 .kpi-card { background:var(--surface); padding:.85rem .95rem .8rem; min-height:118px; position:relative; }
 .kpi-card .label { color:var(--muted); font-size:.62rem; text-transform:uppercase; letter-spacing:.1em; font-family:var(--mono); }

@@ -154,6 +154,19 @@ def _leverage_paragraph(peer: pd.DataFrame) -> str:
     return "; ".join(pieces) + "." if pieces else "Leverage data are unavailable."
 
 
+def _adjusted_margin_paragraph(peer: pd.DataFrame) -> str:
+    rows = peer[peer["has_tagged_charges"].fillna(False) & (peer["restructuring_impairment_charges"].fillna(0).abs() > 0)]
+    if rows.empty:
+        return "No restructuring or impairment charges are tagged in the latest fiscal year, so adjusted margins equal reported margins."
+    parts = [
+        f"{row['ticker']}'s operating margin was {_percent(row['operating_margin'])} as reported and "
+        f"{_percent(row['adjusted_operating_margin'])} before {_billions(row['restructuring_impairment_charges'])} of tagged "
+        "restructuring and impairment charges"
+        for _, row in rows.sort_values("ticker").iterrows()
+    ]
+    return "; ".join(parts) + "."
+
+
 def generate_report(settings: Settings, output: Path | None = None) -> Path:
     output = output or PROJECT_ROOT / "reports" / "v1_findings.md"
     with make_engine(settings.database_url).connect() as connection:
@@ -354,6 +367,17 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             "reported ROIC ignores, so lease-adjusted ROIC is the fairer comparison between store-heavy peers and a "
             "warehouse-club model with fewer leased sites. Coverage uses cash interest paid, which can be lumpy, and is unavailable "
             "on a trailing basis when quarterly filings omit it."
+        ),
+        "",
+        "### 9. Earnings quality: reported versus adjusted margins",
+        "",
+        _adjusted_margin_paragraph(peer),
+        "",
+        (
+            "**Implication.** A one-time charge can make an otherwise stable operating business look weak. The adjusted margin "
+            "is a floor on how much of the decline is structural, not a claim that the charge was unimportant: impairments often "
+            "signal capital that failed to earn its cost. Only charges the issuer tags as a single restructuring or impairment "
+            "line are captured, so untagged items (for example litigation settlements) remain inside reported operating income."
         ),
         "",
         "---",
