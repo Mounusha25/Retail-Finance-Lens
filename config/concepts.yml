@@ -193,6 +193,12 @@ concepts:
       - {taxonomy: us-gaap, concept: RestructuringCostsAndAssetImpairmentCharges, priority: 10}
       - {taxonomy: us-gaap, concept: AssetImpairmentCharges, priority: 20}
       - {taxonomy: us-gaap, concept: GoodwillImpairmentLoss, priority: 30}
+  # Net PP&E. Target and Kroger tag the combined PP&E-and-finance-lease-ROU total in recent years.
+  ppe_net:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: PropertyPlantAndEquipmentNet, priority: 10}
+      - {taxonomy: us-gaap, concept: PropertyPlantAndEquipmentAndFinanceLeaseRightOfUseAssetAfterAccumulatedDepreciationAndAmortization, priority: 20}
   investing_cash_flow:
     period_type: duration
     aliases:

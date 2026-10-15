@@ -167,6 +167,24 @@ def _adjusted_margin_paragraph(peer: pd.DataFrame) -> str:
     return "; ".join(parts) + "."
 
 
+def _attribution_paragraph(peer: pd.DataFrame) -> str:
+    pieces = []
+    for _, row in peer.sort_values("ticker").iterrows():
+        parts = []
+        if pd.notna(row.get("roiic_3y")) and pd.notna(row.get("roic")):
+            relation = "above" if row["roiic_3y"] > row["roic"] else "below"
+            parts.append(f"three-year incremental ROIC of {_percent(row['roiic_3y'])} is {relation} its {_percent(row['roic'])} average")
+        if pd.notna(row.get("roiic")):
+            parts.append(f"latest-year incremental ROIC {_percent(row['roiic'])}")
+        if pd.notna(row.get("fcf_conversion")):
+            parts.append(f"FCF conversion {_percent(row['fcf_conversion'])}")
+        if pd.notna(row.get("capex_to_da")):
+            parts.append(f"capex {_number(row['capex_to_da'], '×')} depreciation")
+        if parts:
+            pieces.append(f"{row['ticker']}: " + ", ".join(parts))
+    return "; ".join(pieces) + "." if pieces else "Attribution metrics are unavailable."
+
+
 def generate_report(settings: Settings, output: Path | None = None) -> Path:
     output = output or PROJECT_ROOT / "reports" / "v1_findings.md"
     with make_engine(settings.database_url).connect() as connection:
@@ -378,6 +396,18 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             "is a floor on how much of the decline is structural, not a claim that the charge was unimportant: impairments often "
             "signal capital that failed to earn its cost. Only charges the issuer tags as a single restructuring or impairment "
             "line are captured, so untagged items (for example litigation settlements) remain inside reported operating income."
+        ),
+        "",
+        "### 10. What is driving returns: incremental capital, cash quality and reinvestment",
+        "",
+        _attribution_paragraph(peer),
+        "",
+        (
+            "**Implication.** Average ROIC describes the past; incremental ROIC describes whether the next dollar is worth "
+            "investing. A company whose incremental return sits below its average is diluting the advantage even while the "
+            "average still looks strong, and a three-year figure can be flattered by a weak starting year. FCF conversion far "
+            "above 100% usually signals earnings depressed by non-cash charges (impairments, depreciation), not unusually "
+            "strong cash generation, and capex near depreciation suggests spending is maintaining rather than growing the asset base."
         ),
         "",
         "---",

@@ -87,6 +87,12 @@ KR's operating margin was 1.3% as reported and 3.1% before $2.7B of tagged restr
 
 **Implication.** A one-time charge can make an otherwise stable operating business look weak. The adjusted margin is a floor on how much of the decline is structural, not a claim that the charge was unimportant: impairments often signal capital that failed to earn its cost. Only charges the issuer tags as a single restructuring or impairment line are captured, so untagged items (for example litigation settlements) remain inside reported operating income.
 
+### 10. What is driving returns: incremental capital, cash quality and reinvestment
+
+COST: three-year incremental ROIC of 70.6% is above its 41.4% average, latest-year incremental ROIC 106.1%, FCF conversion 101.7%, capex 2.4× depreciation; KR: FCF conversion 340.2%, capex 1.2× depreciation; TGT: three-year incremental ROIC of 42.6% is above its 15.0% average, latest-year incremental ROIC -27.2%, FCF conversion 76.5%, capex 1.2× depreciation; WMT: three-year incremental ROIC of 33.9% is above its 16.8% average, latest-year incremental ROIC 1.2%, FCF conversion 68.2%, capex 1.9× depreciation.
+
+**Implication.** Average ROIC describes the past; incremental ROIC describes whether the next dollar is worth investing. A company whose incremental return sits below its average is diluting the advantage even while the average still looks strong, and a three-year figure can be flattered by a weak starting year. FCF conversion far above 100% usually signals earnings depressed by non-cash charges (impairments, depreciation), not unusually strong cash generation, and capex near depreciation suggests spending is maintaining rather than growing the asset base.
+
 ---
 
 ## Five-year direction

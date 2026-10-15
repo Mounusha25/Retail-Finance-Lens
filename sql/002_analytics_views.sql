@@ -68,7 +68,8 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'interest_paid') AS interest_paid,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_liability') AS operating_lease_liability,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'restructuring_impairment_charges') AS restructuring_impairment_charges
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'restructuring_impairment_charges') AS restructuring_impairment_charges,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'ppe_net') AS ppe_net
     FROM annual_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -103,6 +104,25 @@ WITH ranked AS (
         *,
         income_tax_expense / NULLIF(net_income + income_tax_expense, 0) AS effective_tax_rate
     FROM with_revenue
+), driven AS (
+    SELECT
+        *,
+        operating_income * (1 - effective_tax_rate) AS nopat_value,
+        lag(operating_income * (1 - effective_tax_rate)) OVER w AS prior_nopat,
+        lag(operating_income * (1 - effective_tax_rate), 3) OVER w AS nopat_3y_ago,
+        lag(invested_capital, 3) OVER w AS invested_capital_3y_ago,
+        lag(operating_income) OVER w AS prior_operating_income,
+        lag(total_revenue) OVER w AS prior_total_revenue,
+        lag(ppe_net) OVER w AS prior_ppe_net,
+        -- Cash tied up in (negative) or released from (positive) working capital, from balance-sheet changes.
+        CASE WHEN inventory IS NOT NULL AND prior_inventory IS NOT NULL
+              AND accounts_receivable_net_current IS NOT NULL AND prior_receivables IS NOT NULL
+              AND accounts_payable_current IS NOT NULL AND prior_accounts_payable IS NOT NULL
+             THEN -(inventory - prior_inventory)
+                  - (accounts_receivable_net_current - prior_receivables)
+                  + (accounts_payable_current - prior_accounts_payable) END AS working_capital_cash_effect
+    FROM returns
+    WINDOW w AS (PARTITION BY company_id ORDER BY period_end)
 )
 SELECT
     *,
@@ -161,8 +181,33 @@ SELECT
     (operating_income + (operating_lease_liability + prior_operating_lease_liability) / 2 * operating_lease_discount_rate)
       * (1 - effective_tax_rate)
       / NULLIF((invested_capital + operating_lease_liability
-                + prior_invested_capital + prior_operating_lease_liability) / 2, 0) AS lease_adjusted_roic
-FROM returns;
+                + prior_invested_capital + prior_operating_lease_liability) / 2, 0) AS lease_adjusted_roic,
+    -- Incremental returns: do new dollars of capital earn what the existing base earns?
+    -- Materiality guards: a ratio of changes explodes when the denominator is tiny, so the capital base must have
+    -- grown by at least 2% (1 year) or 5% (3 years), and revenue by at least 1%, for the result to be reported.
+    CASE WHEN invested_capital - prior_invested_capital > 0.02 * prior_invested_capital
+         THEN (nopat_value - prior_nopat) / (invested_capital - prior_invested_capital) END AS roiic,
+    CASE WHEN invested_capital - invested_capital_3y_ago > 0.05 * invested_capital_3y_ago
+         THEN (nopat_value - nopat_3y_ago) / (invested_capital - invested_capital_3y_ago) END AS roiic_3y,
+    CASE WHEN prior_total_revenue > 0 AND total_revenue >= prior_total_revenue * 1.01
+         THEN (operating_income - prior_operating_income) / (total_revenue - prior_total_revenue) END AS incremental_operating_margin,
+    -- Degree of operating leverage: % change in operating income per % change in revenue (unstable near zero growth).
+    CASE WHEN prior_total_revenue > 0 AND prior_operating_income > 0
+          AND abs(total_revenue / prior_total_revenue - 1) >= 0.01
+         THEN (operating_income / prior_operating_income - 1) / (total_revenue / prior_total_revenue - 1) END AS operating_leverage,
+    -- Cash-flow quality: net income -> operating cash flow.
+    operating_cash_flow - net_income - depreciation_amortization - working_capital_cash_effect
+      - COALESCE(restructuring_impairment_charges, 0) AS ocf_other_items,
+    (net_income - operating_cash_flow) / NULLIF((total_assets + prior_total_assets) / 2, 0) AS accruals_ratio,
+    CASE WHEN net_income > 0 THEN (operating_cash_flow - capital_expenditures) / net_income END AS fcf_conversion,
+    -- Reinvestment profile.
+    capital_expenditures / NULLIF(depreciation_amortization, 0) AS capex_to_da,
+    capital_expenditures / NULLIF(total_revenue, 0) AS capex_to_revenue,
+    total_revenue / NULLIF((ppe_net + prior_ppe_net) / 2, 0) AS ppe_turnover,
+    capital_expenditures - depreciation_amortization - working_capital_cash_effect AS net_reinvestment,
+    CASE WHEN nopat_value > 0
+         THEN (capital_expenditures - depreciation_amortization - working_capital_cash_effect) / nopat_value END AS reinvestment_rate
+FROM driven;
 
 CREATE OR REPLACE VIEW analytics.v_quarterly_metrics AS
 WITH ranked AS (
@@ -226,7 +271,8 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'interest_paid') AS interest_paid,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_liability') AS operating_lease_liability,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'restructuring_impairment_charges') AS restructuring_impairment_charges
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'restructuring_impairment_charges') AS restructuring_impairment_charges,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'ppe_net') AS ppe_net
     FROM quarter_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r

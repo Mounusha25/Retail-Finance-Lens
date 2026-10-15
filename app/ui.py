@@ -67,11 +67,21 @@ LABELS = {
     "effective_tax_rate": "Effective tax rate",
 }
 
-PERCENT_METRICS.update({"fcf_margin", "payout_ratio_fcf", "capex_to_ocf", "ebitda_margin", "lease_adjusted_roic", "adjusted_operating_margin"})
+PERCENT_METRICS.update({"roiic", "roiic_3y", "incremental_operating_margin", "accruals_ratio", "fcf_conversion", "capex_to_revenue", "reinvestment_rate", "fcf_margin", "payout_ratio_fcf", "capex_to_ocf", "ebitda_margin", "lease_adjusted_roic", "adjusted_operating_margin"})
 LABELS.update({
     "fcf_margin": "FCF margin",
     "payout_ratio_fcf": "Payout / FCF",
     "adjusted_operating_margin": "Adjusted operating margin",
+    "roiic": "Incremental ROIC (1 yr)",
+    "roiic_3y": "Incremental ROIC (3 yr)",
+    "incremental_operating_margin": "Incremental operating margin",
+    "operating_leverage": "Operating leverage",
+    "accruals_ratio": "Accruals ratio",
+    "fcf_conversion": "FCF conversion",
+    "capex_to_da": "Capex / D&A",
+    "capex_to_revenue": "Capex / revenue",
+    "ppe_turnover": "PP&E turnover",
+    "reinvestment_rate": "Reinvestment rate",
     "ebitda": "EBITDA",
     "ebitda_margin": "EBITDA margin",
     "net_debt": "Net debt",
@@ -231,12 +241,13 @@ _NAV = [
     ("pages/1_Peer_Comparison.py", "Peer benchmarking"),
     ("pages/2_Working_Capital.py", "Working capital"),
     ("pages/3_Returns_and_DuPont.py", "Returns & DuPont"),
-    ("pages/4_Capital_Allocation.py", "Capital allocation"),
-    ("pages/5_Leverage_and_Coverage.py", "Leverage & coverage"),
-    ("pages/6_Financial_Statements.py", "Financial statements"),
-    ("pages/7_Company_Trends.py", "Company detail"),
-    ("pages/8_Exploratory_Analysis.py", "Exploratory analysis"),
-    ("pages/9_Methodology_and_Data_Quality.py", "Data quality & methods"),
+    ("pages/4_Why_Returns_Moved.py", "Why returns moved"),
+    ("pages/5_Capital_Allocation.py", "Capital allocation"),
+    ("pages/6_Leverage_and_Coverage.py", "Leverage & coverage"),
+    ("pages/7_Financial_Statements.py", "Financial statements"),
+    ("pages/8_Company_Trends.py", "Company detail"),
+    ("pages/9_Exploratory_Analysis.py", "Exploratory analysis"),
+    ("pages/10_Methodology_and_Data_Quality.py", "Data quality & methods"),
 ]
 
 

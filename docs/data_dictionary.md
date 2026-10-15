@@ -59,6 +59,20 @@ Every fact includes the accession number, taxonomy and source concept, raw and n
 On the trailing-twelve-month basis the charge is the sum of the quarters that report one (such charges are sparse by
 nature), so an untagged quarter contributes nothing and is not an error.
 
+| Incremental ROIC (1 yr / 3 yr) | Change in NOPAT ÷ change in year-end invested capital over one / three fiscal years; reported only when capital grew by at least 2% / 5% |
+| Incremental operating margin | Change in operating income ÷ change in total revenue; reported only when revenue grew by at least 1% |
+| Operating leverage | % change in operating income ÷ % change in total revenue; reported only when revenue moved by at least 1% and prior operating income was positive |
+| Working-capital cash effect | −Δinventory − Δreceivables + Δpayables, from balance-sheet changes (positive releases cash) |
+| Other operating cash items | Operating cash flow − net income − D&A − working-capital effect − tagged impairment and restructuring charges (deferred taxes, stock compensation and other) |
+| Accruals ratio | (Net income − operating cash flow) ÷ average total assets; negative means cash flow exceeds earnings |
+| FCF conversion | Free cash flow ÷ net income; reported only when net income is positive |
+| Capex / D&A, Capex / revenue | Capital expenditures relative to depreciation and amortization, and to revenue |
+| PP&E turnover | Total revenue ÷ average net PP&E (Target and Kroger use the combined PP&E and finance-lease asset tag) |
+| Net reinvestment, reinvestment rate | Capex − D&A − working-capital cash effect; divided by NOPAT when NOPAT is positive |
+
+The ROE change attribution on the dashboard uses the logarithmic-mean Divisia decomposition of net margin × asset turnover
+× equity multiplier, so the three contributions sum exactly to the year's change in ROE.
+
 DuPont identity: net margin × asset turnover × equity multiplier = return on equity. Invested capital excludes operating-lease liabilities; Target's debt tag includes finance leases.
 
 Missing inputs produce a null metric. The pipeline does not infer an undisclosed component as zero.

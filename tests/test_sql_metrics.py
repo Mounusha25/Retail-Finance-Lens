@@ -23,7 +23,8 @@ FACTS = {
         "inventory": 100, "accounts_receivable_net_current": 50, "accounts_payable_current": 80,
         "current_debt": 10, "long_term_debt_noncurrent": 40, "cash_and_cash_equivalents": 40,
         "total_assets": 600, "total_equity": 200, "stockholders_equity": 190,
-        "operating_lease_liability": 60,
+        "operating_lease_liability": 60, "ppe_net": 100,
+        "operating_income": 50, "net_income": 30, "income_tax_expense": 10,
     },
     YEAR_2: {
         "net_sales": 1100, "membership_other_revenue": 100, "cost_of_sales": 880,
@@ -37,7 +38,7 @@ FACTS = {
         "income_tax_expense": 15,
         "dividends_paid": 12, "share_repurchases": 8, "debt_issued": 30, "debt_repaid": 10,
         "depreciation_amortization": 20, "interest_paid": 6, "restructuring_impairment_charges": 12,
-        "operating_lease_liability": 80, "operating_lease_discount_rate": 0.05,
+        "operating_lease_liability": 80, "operating_lease_discount_rate": 0.05, "ppe_net": 120,
     },
 }
 DURATION = {
@@ -391,3 +392,61 @@ def test_ltm_charges_sum_only_the_quarters_that_report_one(ltm_connection):
     untagged = _ltm(ltm_connection, "ZZG")
     assert untagged["has_tagged_charges"] is False
     assert untagged["adjusted_operating_income"] == untagged["operating_income"]
+
+
+def test_incremental_returns_and_operating_leverage(seeded):
+    row = _latest(seeded, "ZZA")
+    prior_nopat = 50 * (1 - 10 / (30 + 10))
+    nopat = 60 * (1 - 15 / (40 + 15))
+    assert row["roiic"] == pytest.approx((nopat - prior_nopat) / (225 - 210))
+    assert row["roiic_3y"] is None                       # fewer than four years of history
+    assert row["incremental_operating_margin"] == pytest.approx((60 - 50) / (1200 - 1100))
+    assert row["operating_leverage"] == pytest.approx((60 / 50 - 1) / (1200 / 1100 - 1))
+
+
+def test_cash_flow_bridge_reconciles_net_income_to_ocf(seeded):
+    row = _latest(seeded, "ZZA")
+    # Inventory +20 and receivables +10 absorb cash; payables +20 release it.
+    assert row["working_capital_cash_effect"] == -10
+    assert row["ocf_other_items"] == pytest.approx(90 - 40 - 20 - (-10) - 12)
+    bridge = 40 + 20 + row["working_capital_cash_effect"] + 12 + row["ocf_other_items"]
+    assert bridge == pytest.approx(90)                   # the bridge always sums to operating cash flow
+    assert row["accruals_ratio"] == pytest.approx((40 - 90) / ((700 + 600) / 2))
+    assert row["fcf_conversion"] == pytest.approx(60 / 40)
+
+
+def test_reinvestment_profile(seeded):
+    row = _latest(seeded, "ZZA")
+    nopat = 60 * (1 - 15 / 55)
+    assert row["capex_to_da"] == pytest.approx(30 / 20)
+    assert row["capex_to_revenue"] == pytest.approx(30 / 1200)
+    assert row["ppe_turnover"] == pytest.approx(1200 / ((120 + 100) / 2))
+    assert row["net_reinvestment"] == pytest.approx(30 - 20 + 10)
+    assert row["reinvestment_rate"] == pytest.approx(20 / nopat)
+
+
+def test_roiic_is_null_when_capital_shrinks(seeded):
+    seeded.execute(
+        text(
+            "UPDATE financial_facts SET normalized_value = 400, raw_value = '400' "
+            "WHERE canonical_concept = 'total_equity' AND period_end = :d "
+            "AND company_id = (SELECT id FROM companies WHERE ticker = 'ZZA')"
+        ),
+        {"d": YEAR_1},
+    )
+    # Prior-year capital is now 10 + 40 + 400 - 40 = 410 > 225, so capital fell and ROIIC is undefined.
+    assert _latest(seeded, "ZZA")["roiic"] is None
+
+
+def test_incremental_ratios_are_suppressed_on_immaterial_changes(seeded):
+    # Total revenue 1102 vs 1100 (+0.2%, below the 1% guard): the incremental margin must be null, not enormous.
+    seeded.execute(
+        text(
+            "UPDATE financial_facts SET normalized_value = 1002, raw_value = '1002' "
+            "WHERE canonical_concept = 'net_sales' AND period_end = :d "
+            "AND company_id = (SELECT id FROM companies WHERE ticker = 'ZZA')"
+        ),
+        {"d": YEAR_2},
+    )
+    row = _latest(seeded, "ZZA")
+    assert row["incremental_operating_margin"] is None
