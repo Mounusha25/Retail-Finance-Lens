@@ -115,19 +115,20 @@ p, li, label, span { color:inherit; }
 .side-status-detail { color:var(--muted); font-size:.68rem; line-height:1.45; }
 
 /* Ticker strip */
-.tape { display:flex; width:100%; overflow-x:scroll; overflow-y:hidden; border:1px solid var(--line); background:var(--panel);
-  margin:.6rem 0 1rem; padding:0 .8rem .2rem; box-sizing:border-box; overscroll-behavior-x:contain;
-  -webkit-overflow-scrolling:touch; scrollbar-width:thin; scrollbar-color:var(--line2) var(--panel); }
-.tape::-webkit-scrollbar { height:7px; }
-.tape::-webkit-scrollbar-track { background:var(--panel); }
-.tape::-webkit-scrollbar-thumb { background:var(--line2); border-radius:3px; }
-.tape::-webkit-scrollbar-thumb:hover { background:var(--muted); }
-.tick { flex:0 0 auto; display:flex; align-items:baseline; gap:.65rem; padding:.5rem .8rem .5rem 0; margin-right:.8rem;
-  border-right:1px solid var(--line); font-family:var(--mono); font-size:.68rem; white-space:nowrap; }
-.tick:last-child { border-right:0; }
-.tape-hint { position:sticky; right:0; flex:0 0 auto; margin-left:auto; padding:.5rem 0 .5rem 1.4rem; font-family:var(--mono);
-  font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); white-space:nowrap;
-  background:linear-gradient(90deg,rgba(20,20,19,0),var(--panel) 45%); pointer-events:none; }
+.tape { position:relative; display:block; width:100%; max-width:100%; overflow:hidden; contain:inline-size;
+  border:1px solid var(--line); background:var(--panel); margin:.6rem 0 1rem; box-sizing:border-box;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent); }
+[data-testid="stElementContainer"]:has(.tape), [data-testid="stMarkdownContainer"]:has(.tape) { min-width:0; max-width:100%; overflow:hidden; }
+.tape-track { display:flex; width:max-content; animation:tape-scroll 55s linear infinite; will-change:transform; }
+.tape:hover .tape-track { animation-play-state:paused; }
+@keyframes tape-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .tape { overflow-x:auto; -webkit-mask-image:none; mask-image:none; }
+  .tape-track { animation:none; }
+}
+.tick { flex:0 0 auto; display:flex; align-items:baseline; gap:.65rem; padding:.5rem 1.1rem; border-right:1px solid var(--line);
+  font-family:var(--mono); font-size:.7rem; white-space:nowrap; }
 .tick .sym { color:var(--ink); font-weight:600; letter-spacing:.04em; display:flex; align-items:center; gap:.4rem; }
 .tick .sw { width:8px; height:8px; display:inline-block; }
 .tick .lbl { color:var(--muted); }
@@ -293,7 +294,7 @@ def ticker_strip() -> None:
     annual = annual.copy()
     annual["period_end"] = pd.to_datetime(annual["period_end"])
     annual = annual.sort_values(["ticker", "period_end"])
-    pieces = ['<div class="tape">']
+    items = []
     for ticker in [t for t in COMPANY_ORDER if t in set(annual["ticker"])]:
         company = annual[annual["ticker"] == ticker]
         latest = company.iloc[-1]
@@ -308,9 +309,14 @@ def ticker_strip() -> None:
             text, direction = _fmt_delta(metric, moves["change"]) if metric != "revenue_growth" else ("", "flat")
             delta = f' <span class="{direction}">{text}</span>' if text and text != "—" else ""
             cells.append(f'<span class="lbl">{label}</span><span class="val">{float(value):.1%}</span>{delta}')
-        pieces.append(f'<div class="tick">{" ".join(cells)}</div>')
-    pieces.append('<div class="tape-hint">scroll ⇢</div></div>')
-    st.markdown("".join(pieces), unsafe_allow_html=True)
+        items.append(f'<div class="tick">{" ".join(cells)}</div>')
+    if not items:
+        return
+    # Four copies in two identical halves: the track slides left by 50% and loops seamlessly,
+    # and each half stays wider than the viewport even on very wide screens.
+    copies = "".join(items)
+    track = copies + "".join(f'<div style="display:contents" aria-hidden="true">{copies}</div>' for _ in range(3))
+    st.markdown(f'<div class="tape"><div class="tape-track">{track}</div></div>', unsafe_allow_html=True)
 
 
 def page_setup(title: str, kicker: str = "Retail intelligence", description: str | None = None) -> None:
