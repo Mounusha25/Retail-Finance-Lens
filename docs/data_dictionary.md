@@ -96,3 +96,25 @@ measured over the same twelve months.
 - Growth compares the window with the four quarters before it.
 - Balance-sheet items use the latest quarter end, and averages use the quarter end one year earlier.
 - Ratios (margins, turnover, days, ROIC, ROE) use the same formulas as the annual view on these inputs.
+
+## Forecast and valuation (illustrative)
+
+The Forecast & Valuation page and report finding 11 use a driver-based ten-year discounted-cash-flow model
+(`app/valuation.py`). It is a scenario analysis, not a price target: the application holds no market prices or share counts.
+
+| Driver | Default |
+|---|---|
+| Starting revenue | Trailing-twelve-month total revenue |
+| Year-1 growth | Average of trailing-twelve-month growth and three-year revenue CAGR, capped at 12%, fading linearly to terminal growth by year 10 |
+| Operating margin | Trailing-twelve-month operating margin before tagged restructuring and impairment charges, held flat |
+| Tax rate | Trailing-twelve-month effective rate, limited to 18-30% (24% if unreported) |
+| Depreciation and capex | D&A at its trailing share of revenue; capex at its three-year average share of revenue |
+| Working capital | Latest fiscal year (inventory + receivables − payables) ÷ revenue, applied to revenue growth |
+| Cost of capital | 7.5% (a judgement; adjustable) |
+| Terminal growth | 2.5% (adjustable) |
+| Return on new capital in perpetuity | Halfway between cost of capital and the company's ROIC, between WACC and 2× WACC |
+
+Terminal value uses the value-driver formula NOPAT(T+1) × (1 − g ÷ RONIC) ÷ (WACC − g). Scenarios: **bear** lowers year-1
+growth by 2 points and margin by 15%; **bull** raises growth by 1.5 points and margin by 10%. Equity value is enterprise
+value less net debt (debt − cash; operating lease expense is already inside operating profit). The reverse DCF solves for
+the near-term growth that reproduces a market value you enter.

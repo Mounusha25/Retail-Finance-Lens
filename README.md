@@ -6,7 +6,7 @@ An auditable financial-analysis portfolio project comparing Walmart, Target, Cos
 
 **Live dashboard:** <https://retailfinance-analytics.streamlit.app/>
 
-The repository contains the data pipeline, PostgreSQL analytical model, validation checks, eleven-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
+The repository contains the data pipeline, PostgreSQL analytical model, validation checks, twelve-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
 
 ![Architecture overview](docs/assets/architecture.svg)
 
@@ -109,10 +109,11 @@ A dark, equity-research-style workspace with a live ticker tape (latest sales gr
 5. **Why returns moved** — incremental ROIC, incremental margin and operating leverage, a net-income-to-cash-flow bridge, an exact attribution of each year's ROE change, and the reinvestment profile.
 6. **Capital allocation** — operating cash flow through capex, dividends and buybacks, and payout versus free cash flow.
 7. **Leverage & coverage** — EBITDA, net debt, interest coverage, and ROIC adjusted for operating leases.
-8. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
-9. **Company trends** — five annual periods or twelve quarters with filing lineage.
-10. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
-11. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
+8. **Forecast & valuation** — an illustrative ten-year DCF with bear/base/bull cases, adjustable assumptions, a sensitivity grid and a reverse DCF against a market value you enter.
+9. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
+10. **Company trends** — five annual periods or twelve quarters with filing lineage.
+11. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
+12. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
 
 **Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within six pillars (growth, profitability, efficiency, cash, returns, balance sheet) and combined with weights you can change. A robustness panel re-runs the ranking under named and random weightings and reports how often each company leads. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
 

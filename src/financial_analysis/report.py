@@ -185,6 +185,31 @@ def _attribution_paragraph(peer: pd.DataFrame) -> str:
     return "; ".join(pieces) + "." if pieces else "Attribution metrics are unavailable."
 
 
+def _valuation_paragraph(ltm: pd.DataFrame, annual: pd.DataFrame) -> str:
+    """Base-case DCF multiples for each company under stated, default assumptions."""
+    import sys
+
+    sys.path.insert(0, str(PROJECT_ROOT))
+    from app.valuation import SCENARIOS, apply_scenario, base_assumptions, dcf, inputs_from_history
+
+    wacc, growth = 0.075, 0.025
+    pieces = []
+    for _, row in ltm.sort_values("ticker").iterrows():
+        try:
+            inputs = inputs_from_history(row, annual[annual["ticker"] == row["ticker"]])
+            base = base_assumptions(inputs, wacc, growth)
+            net_debt = inputs.get("net_debt")
+            net_debt = 0.0 if net_debt is None or pd.isna(net_debt) else float(net_debt)
+            ebitda = float(inputs["ltm_ebitda"])
+            multiples = {name: dcf(apply_scenario(base, name), net_debt)["enterprise_value"] / ebitda for name in SCENARIOS}
+        except (ValueError, KeyError, TypeError):
+            continue
+        pieces.append(
+            f"{row['ticker']} {multiples['Bear']:.1f}× to {multiples['Bull']:.1f}× EBITDA (base {multiples['Base']:.1f}×)"
+        )
+    return "; ".join(pieces) + "." if pieces else "Valuation inputs are unavailable."
+
+
 def generate_report(settings: Settings, output: Path | None = None) -> Path:
     output = output or PROJECT_ROOT / "reports" / "v1_findings.md"
     with make_engine(settings.database_url).connect() as connection:
@@ -408,6 +433,22 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             "average still looks strong, and a three-year figure can be flattered by a weak starting year. FCF conversion far "
             "above 100% usually signals earnings depressed by non-cash charges (impairments, depreciation), not unusually "
             "strong cash generation, and capex near depreciation suggests spending is maintaining rather than growing the asset base."
+        ),
+        "",
+        "### 11. Forward view: what the fundamentals support (illustrative)",
+        "",
+        (
+            "A ten-year driver-based discounted-cash-flow model, using each company's own trailing growth, margin, capex and "
+            "working-capital profile with a 7.5% cost of capital and 2.5% terminal growth, implies enterprise values of "
+            + _valuation_paragraph(ltm, annual)
+        ),
+        "",
+        (
+            "**Implication.** These are scenario outputs under stated assumptions, not price targets: the analysis holds no market "
+            "prices or share counts. Their use is comparative and diagnostic. A market valuation far above this range does not mean "
+            "the model is wrong; it means investors are paying for a longer duration of growth and excess returns than a ten-year "
+            "fade assumes, and the reverse-DCF view on the dashboard shows how much growth that would require. Terminal value is "
+            "about 60-70% of each result, so cost of capital and terminal growth dominate."
         ),
         "",
         "---",

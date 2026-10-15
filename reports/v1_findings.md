@@ -93,6 +93,12 @@ COST: three-year incremental ROIC of 70.6% is above its 41.4% average, latest-ye
 
 **Implication.** Average ROIC describes the past; incremental ROIC describes whether the next dollar is worth investing. A company whose incremental return sits below its average is diluting the advantage even while the average still looks strong, and a three-year figure can be flattered by a weak starting year. FCF conversion far above 100% usually signals earnings depressed by non-cash charges (impairments, depreciation), not unusually strong cash generation, and capex near depreciation suggests spending is maintaining rather than growing the asset base.
 
+### 11. Forward view: what the fundamentals support (illustrative)
+
+A ten-year driver-based discounted-cash-flow model, using each company's own trailing growth, margin, capex and working-capital profile with a 7.5% cost of capital and 2.5% terminal growth, implies enterprise values of COST 9.4× to 14.9× EBITDA (base 12.5×); KR 7.6× to 11.8× EBITDA (base 9.9×); TGT 5.9× to 9.1× EBITDA (base 7.7×); WMT 6.6× to 10.5× EBITDA (base 8.8×).
+
+**Implication.** These are scenario outputs under stated assumptions, not price targets: the analysis holds no market prices or share counts. Their use is comparative and diagnostic. A market valuation far above this range does not mean the model is wrong; it means investors are paying for a longer duration of growth and excess returns than a ten-year fade assumes, and the reverse-DCF view on the dashboard shows how much growth that would require. Terminal value is about 60-70% of each result, so cost of capital and terminal growth dominate.
+
 ---
 
 ## Five-year direction

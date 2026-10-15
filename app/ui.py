@@ -244,10 +244,11 @@ _NAV = [
     ("pages/4_Why_Returns_Moved.py", "Why returns moved"),
     ("pages/5_Capital_Allocation.py", "Capital allocation"),
     ("pages/6_Leverage_and_Coverage.py", "Leverage & coverage"),
-    ("pages/7_Financial_Statements.py", "Financial statements"),
-    ("pages/8_Company_Trends.py", "Company detail"),
-    ("pages/9_Exploratory_Analysis.py", "Exploratory analysis"),
-    ("pages/10_Methodology_and_Data_Quality.py", "Data quality & methods"),
+    ("pages/7_Forecast_and_Valuation.py", "Forecast & valuation"),
+    ("pages/8_Financial_Statements.py", "Financial statements"),
+    ("pages/9_Company_Trends.py", "Company detail"),
+    ("pages/10_Exploratory_Analysis.py", "Exploratory analysis"),
+    ("pages/11_Methodology_and_Data_Quality.py", "Data quality & methods"),
 ]
 
 
