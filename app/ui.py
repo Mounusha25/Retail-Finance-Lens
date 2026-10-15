@@ -115,12 +115,19 @@ p, li, label, span { color:inherit; }
 .side-status-detail { color:var(--muted); font-size:.68rem; line-height:1.45; }
 
 /* Ticker strip */
-.tape { display:flex; gap:0; overflow-x:auto; border-bottom:1px solid var(--line); background:var(--panel);
-  margin:0 -1.6rem 1rem; padding:0 1.6rem; scrollbar-width:none; }
-.tape::-webkit-scrollbar { display:none; }
+.tape { display:flex; width:100%; overflow-x:scroll; overflow-y:hidden; border:1px solid var(--line); background:var(--panel);
+  margin:.6rem 0 1rem; padding:0 .8rem .2rem; box-sizing:border-box; overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch; scrollbar-width:thin; scrollbar-color:var(--line2) var(--panel); }
+.tape::-webkit-scrollbar { height:7px; }
+.tape::-webkit-scrollbar-track { background:var(--panel); }
+.tape::-webkit-scrollbar-thumb { background:var(--line2); border-radius:3px; }
+.tape::-webkit-scrollbar-thumb:hover { background:var(--muted); }
 .tick { flex:0 0 auto; display:flex; align-items:baseline; gap:.65rem; padding:.5rem .8rem .5rem 0; margin-right:.8rem;
   border-right:1px solid var(--line); font-family:var(--mono); font-size:.68rem; white-space:nowrap; }
 .tick:last-child { border-right:0; }
+.tape-hint { position:sticky; right:0; flex:0 0 auto; margin-left:auto; padding:.5rem 0 .5rem 1.4rem; font-family:var(--mono);
+  font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); white-space:nowrap;
+  background:linear-gradient(90deg,rgba(20,20,19,0),var(--panel) 45%); pointer-events:none; }
 .tick .sym { color:var(--ink); font-weight:600; letter-spacing:.04em; display:flex; align-items:center; gap:.4rem; }
 .tick .sw { width:8px; height:8px; display:inline-block; }
 .tick .lbl { color:var(--muted); }
@@ -198,7 +205,6 @@ div[data-testid="stAlert"] { border-radius:0; font-size:.8rem; }
 hr { border-color:var(--line); }
 @media(max-width:800px) {
   .block-container { padding:0 .9rem 3rem; }
-  .tape { margin:0 -.9rem 1rem; padding:0 .9rem; }
   .page-header { align-items:flex-start; flex-direction:column; }
   .kpi-card .value { font-size:1.25rem; }
 }
@@ -303,7 +309,7 @@ def ticker_strip() -> None:
             delta = f' <span class="{direction}">{text}</span>' if text and text != "—" else ""
             cells.append(f'<span class="lbl">{label}</span><span class="val">{float(value):.1%}</span>{delta}')
         pieces.append(f'<div class="tick">{" ".join(cells)}</div>')
-    pieces.append("</div>")
+    pieces.append('<div class="tape-hint">scroll ⇢</div></div>')
     st.markdown("".join(pieces), unsafe_allow_html=True)
 
 
