@@ -13,7 +13,7 @@ refresh:
 	financial-analysis refresh --companies all
 
 dashboard:
-	streamlit run app/streamlit_app.py
+	streamlit run app/streamlit_app.py --server.port 8502
 
 compose-up:
 	docker compose up --build -d db dashboard
