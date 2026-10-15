@@ -8,3 +8,10 @@
 data/raw
 data/staged
 reports/*.md
+.venv
+.streamlit/secrets.toml
+.DS_Store
+.github
+.coverage
+htmlcov
+src/*.egg-info
