@@ -38,6 +38,12 @@ Every fact includes the accession number, taxonomy and source concept, raw and n
 | Asset turnover | Total revenue ÷ average total assets |
 | Equity multiplier | Average total assets ÷ average parent stockholders' equity |
 
+| Shareholder payouts | Dividends paid + share repurchases |
+| Payout / FCF | Shareholder payouts ÷ free cash flow; null when free cash flow is not positive |
+| Capex / OCF | Capital expenditures ÷ operating cash flow |
+| Net debt issuance | Long-term debt issued − long-term debt repaid (excludes short-term borrowing and lease principal) |
+| FCF after payouts | Operating cash flow − capex − dividends − buybacks |
+
 DuPont identity: net margin × asset turnover × equity multiplier = return on equity. Invested capital excludes operating-lease liabilities; Target's debt tag includes finance leases.
 
 Missing inputs produce a null metric. The pipeline does not infer an undisclosed component as zero.
@@ -49,3 +55,15 @@ Standalone Q2 and Q3 flows are obtained from cumulative disclosures when a direc
 | Issuer | Note |
 |---|---|
 | Kroger (KR) | No separate membership revenue: reported sales are both `net_sales` and `total_revenue`. Cost of sales is tagged `CostOfGoodsAndServiceExcludingDepreciationDepletionAndAmortization`, which excludes depreciation and rent-type items, so gross margin is not strictly comparable with peers. Net inventory is derived as `fifo_inventory` − `lifo_reserve` at the same balance-sheet date (flagged `is_derived`). Accounts payable falls back to `AccountsPayableTradeCurrent` before FY2023. Capex uses `PaymentsToAcquireProductiveAssets`. Debt uses the debt-only tags and therefore excludes finance-lease liabilities (Target's debt tag includes them). The first fiscal quarter is 16 weeks; the others are 12 weeks. |
+
+## Trailing twelve months (`analytics.v_ltm_metrics`)
+
+One row per company covering the latest four standalone quarters, so companies with different fiscal year-ends are
+measured over the same twelve months.
+
+- A flow (sales, cost of sales, operating income, cash flows, payouts) is the sum of four quarters and is reported
+  only when all four are present; otherwise it is null, never a partial sum.
+- `is_complete` is true when four quarters span 357-378 fiscal days.
+- Growth compares the window with the four quarters before it.
+- Balance-sheet items use the latest quarter end, and averages use the quarter end one year earlier.
+- Ratios (margins, turnover, days, ROIC, ROE) use the same formulas as the annual view on these inputs.

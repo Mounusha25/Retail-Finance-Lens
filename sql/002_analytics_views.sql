@@ -1,6 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS analytics;
 
 -- Views are dropped first because CREATE OR REPLACE VIEW cannot add or reorder columns.
+DROP VIEW IF EXISTS analytics.v_ltm_metrics;
 DROP VIEW IF EXISTS analytics.v_peer_comparison;
 DROP VIEW IF EXISTS analytics.v_annual_metrics;
 DROP VIEW IF EXISTS analytics.v_quarterly_metrics;
@@ -58,7 +59,11 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_assets') AS total_assets,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'stockholders_equity') AS stockholders_equity,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_equity') AS total_equity,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'income_tax_expense') AS income_tax_expense
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'income_tax_expense') AS income_tax_expense,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'dividends_paid') AS dividends_paid,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'share_repurchases') AS share_repurchases,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_issued') AS debt_issued,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_repaid') AS debt_repaid
     FROM annual_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -121,7 +126,13 @@ SELECT
     net_income / NULLIF((stockholders_equity + prior_stockholders_equity) / 2, 0) AS return_on_equity,
     total_revenue / NULLIF((total_assets + prior_total_assets) / 2, 0) AS asset_turnover,
     ((total_assets + prior_total_assets) / 2)
-      / NULLIF((stockholders_equity + prior_stockholders_equity) / 2, 0) AS equity_multiplier
+      / NULLIF((stockholders_equity + prior_stockholders_equity) / 2, 0) AS equity_multiplier,
+    dividends_paid + share_repurchases AS shareholder_payouts,
+    CASE WHEN operating_cash_flow - capital_expenditures > 0
+         THEN (dividends_paid + share_repurchases) / (operating_cash_flow - capital_expenditures) END AS payout_ratio_fcf,
+    capital_expenditures / NULLIF(operating_cash_flow, 0) AS capex_to_ocf,
+    debt_issued - debt_repaid AS net_debt_issuance,
+    operating_cash_flow - capital_expenditures - dividends_paid - share_repurchases AS fcf_after_payouts
 FROM returns;
 
 CREATE OR REPLACE VIEW analytics.v_quarterly_metrics AS
@@ -177,7 +188,11 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_assets') AS total_assets,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'stockholders_equity') AS stockholders_equity,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'total_equity') AS total_equity,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'income_tax_expense') AS income_tax_expense
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'income_tax_expense') AS income_tax_expense,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'dividends_paid') AS dividends_paid,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'share_repurchases') AS share_repurchases,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_issued') AS debt_issued,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_repaid') AS debt_repaid
     FROM quarter_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -253,6 +268,114 @@ FROM validation_results v
 LEFT JOIN companies c ON c.id = v.company_id
 WHERE v.run_id = (SELECT run_id FROM latest_validation_run);
 
+-- Trailing twelve months: the latest four standalone quarters per company. A flow is reported only when all
+-- four quarters are present, and the window must span 52-53 weeks, so a gap yields NULL instead of a partial sum.
+-- Balance-sheet items use the latest quarter end and the quarter end one year earlier for averages.
+CREATE OR REPLACE VIEW analytics.v_ltm_metrics AS
+WITH q AS (
+    SELECT
+        *,
+        row_number() OVER (PARTITION BY company_id ORDER BY period_end DESC) AS rn
+    FROM analytics.v_quarterly_metrics
+), windowed AS (
+    SELECT
+        company_id,
+        ticker,
+        company_name,
+        max(period_end) FILTER (WHERE rn = 1) AS period_end,
+        max(issuer_fiscal_year) FILTER (WHERE rn = 1) AS issuer_fiscal_year,
+        max(issuer_fiscal_period) FILTER (WHERE rn = 1) AS issuer_fiscal_period,
+        max(accession_number) FILTER (WHERE rn = 1) AS accession_number,
+        max(source_url) FILTER (WHERE rn = 1) AS source_url,
+        count(*) FILTER (WHERE rn BETWEEN 1 AND 4) AS quarters_in_window,
+        sum(fiscal_days) FILTER (WHERE rn BETWEEN 1 AND 4) AS fiscal_days,
+        CASE WHEN count(net_sales) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(net_sales) FILTER (WHERE rn BETWEEN 1 AND 4) END AS net_sales,
+        CASE WHEN count(membership_other_revenue) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(membership_other_revenue) FILTER (WHERE rn BETWEEN 1 AND 4) END AS membership_other_revenue,
+        CASE WHEN count(total_revenue) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(total_revenue) FILTER (WHERE rn BETWEEN 1 AND 4) END AS total_revenue,
+        CASE WHEN count(cost_of_sales) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(cost_of_sales) FILTER (WHERE rn BETWEEN 1 AND 4) END AS cost_of_sales,
+        CASE WHEN count(operating_income) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(operating_income) FILTER (WHERE rn BETWEEN 1 AND 4) END AS operating_income,
+        CASE WHEN count(net_income) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(net_income) FILTER (WHERE rn BETWEEN 1 AND 4) END AS net_income,
+        CASE WHEN count(operating_cash_flow) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(operating_cash_flow) FILTER (WHERE rn BETWEEN 1 AND 4) END AS operating_cash_flow,
+        CASE WHEN count(capital_expenditures) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(capital_expenditures) FILTER (WHERE rn BETWEEN 1 AND 4) END AS capital_expenditures,
+        CASE WHEN count(income_tax_expense) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(income_tax_expense) FILTER (WHERE rn BETWEEN 1 AND 4) END AS income_tax_expense,
+        CASE WHEN count(dividends_paid) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(dividends_paid) FILTER (WHERE rn BETWEEN 1 AND 4) END AS dividends_paid,
+        CASE WHEN count(share_repurchases) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(share_repurchases) FILTER (WHERE rn BETWEEN 1 AND 4) END AS share_repurchases,
+        CASE WHEN count(debt_issued) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(debt_issued) FILTER (WHERE rn BETWEEN 1 AND 4) END AS debt_issued,
+        CASE WHEN count(debt_repaid) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(debt_repaid) FILTER (WHERE rn BETWEEN 1 AND 4) END AS debt_repaid,
+        CASE WHEN count(net_sales) FILTER (WHERE rn BETWEEN 5 AND 8) = 4 THEN sum(net_sales) FILTER (WHERE rn BETWEEN 5 AND 8) END AS prior_net_sales,
+        CASE WHEN count(total_revenue) FILTER (WHERE rn BETWEEN 5 AND 8) = 4 THEN sum(total_revenue) FILTER (WHERE rn BETWEEN 5 AND 8) END AS prior_total_revenue,
+        max(inventory) FILTER (WHERE rn = 1) AS inventory,
+        max(inventory) FILTER (WHERE rn = 5) AS prior_inventory,
+        max(accounts_receivable_net_current) FILTER (WHERE rn = 1) AS accounts_receivable_net_current,
+        max(accounts_receivable_net_current) FILTER (WHERE rn = 5) AS prior_accounts_receivable_net_current,
+        max(accounts_payable_current) FILTER (WHERE rn = 1) AS accounts_payable_current,
+        max(accounts_payable_current) FILTER (WHERE rn = 5) AS prior_accounts_payable_current,
+        max(cash_and_cash_equivalents) FILTER (WHERE rn = 1) AS cash_and_cash_equivalents,
+        max(cash_and_cash_equivalents) FILTER (WHERE rn = 5) AS prior_cash_and_cash_equivalents,
+        max(short_term_investments) FILTER (WHERE rn = 1) AS short_term_investments,
+        max(short_term_investments) FILTER (WHERE rn = 5) AS prior_short_term_investments,
+        max(current_assets) FILTER (WHERE rn = 1) AS current_assets,
+        max(current_assets) FILTER (WHERE rn = 5) AS prior_current_assets,
+        max(current_liabilities) FILTER (WHERE rn = 1) AS current_liabilities,
+        max(current_liabilities) FILTER (WHERE rn = 5) AS prior_current_liabilities,
+        max(total_assets) FILTER (WHERE rn = 1) AS total_assets,
+        max(total_assets) FILTER (WHERE rn = 5) AS prior_total_assets,
+        max(stockholders_equity) FILTER (WHERE rn = 1) AS stockholders_equity,
+        max(stockholders_equity) FILTER (WHERE rn = 5) AS prior_stockholders_equity,
+        max(total_equity) FILTER (WHERE rn = 1) AS total_equity,
+        max(total_equity) FILTER (WHERE rn = 5) AS prior_total_equity,
+        max(total_debt) FILTER (WHERE rn = 1) AS total_debt,
+        max(total_debt) FILTER (WHERE rn = 5) AS prior_total_debt
+    FROM q
+    GROUP BY company_id, ticker, company_name
+), clean AS (
+    SELECT
+        *,
+        quarters_in_window = 4 AND fiscal_days BETWEEN 357 AND 378 AS is_complete
+    FROM windowed
+), with_flows AS (
+    SELECT
+        *,
+        income_tax_expense / NULLIF(net_income + income_tax_expense, 0) AS effective_tax_rate,
+        total_debt + total_equity - cash_and_cash_equivalents AS invested_capital,
+        prior_total_debt + prior_total_equity - prior_cash_and_cash_equivalents AS prior_invested_capital
+    FROM clean
+)
+SELECT
+    *,
+    net_sales / NULLIF(prior_net_sales, 0) - 1 AS revenue_growth,
+    (net_sales - cost_of_sales) / NULLIF(net_sales, 0) AS gross_margin,
+    operating_income / NULLIF(total_revenue, 0) AS operating_margin,
+    net_income / NULLIF(total_revenue, 0) AS net_margin,
+    operating_cash_flow / NULLIF(net_income, 0) AS ocf_to_net_income,
+    operating_cash_flow - capital_expenditures AS free_cash_flow,
+    (operating_cash_flow - capital_expenditures) / NULLIF(total_revenue, 0) AS fcf_margin,
+    cost_of_sales / NULLIF((inventory + prior_inventory) / 2, 0) AS inventory_turnover,
+    ((inventory + prior_inventory) / 2) / NULLIF(cost_of_sales, 0) * fiscal_days AS days_inventory_outstanding,
+    ((accounts_receivable_net_current + prior_accounts_receivable_net_current) / 2) / NULLIF(net_sales, 0) * fiscal_days AS receivable_days,
+    ((accounts_payable_current + prior_accounts_payable_current) / 2) / NULLIF(cost_of_sales, 0) * fiscal_days AS payable_days,
+    (((accounts_receivable_net_current + prior_accounts_receivable_net_current) / 2) / NULLIF(net_sales, 0) * fiscal_days)
+      + (((inventory + prior_inventory) / 2) / NULLIF(cost_of_sales, 0) * fiscal_days)
+      - (((accounts_payable_current + prior_accounts_payable_current) / 2) / NULLIF(cost_of_sales, 0) * fiscal_days)
+      AS cash_conversion_cycle,
+    current_assets / NULLIF(current_liabilities, 0) AS current_ratio,
+    (cash_and_cash_equivalents + short_term_investments + accounts_receivable_net_current)
+      / NULLIF(current_liabilities, 0) AS quick_ratio,
+    operating_income * (1 - effective_tax_rate) AS nopat,
+    operating_income * (1 - effective_tax_rate)
+      / NULLIF((invested_capital + prior_invested_capital) / 2, 0) AS roic,
+    net_income / NULLIF((stockholders_equity + prior_stockholders_equity) / 2, 0) AS return_on_equity,
+    total_revenue / NULLIF((total_assets + prior_total_assets) / 2, 0) AS asset_turnover,
+    ((total_assets + prior_total_assets) / 2)
+      / NULLIF((stockholders_equity + prior_stockholders_equity) / 2, 0) AS equity_multiplier,
+    dividends_paid + share_repurchases AS shareholder_payouts,
+    CASE WHEN operating_cash_flow - capital_expenditures > 0
+         THEN (dividends_paid + share_repurchases) / (operating_cash_flow - capital_expenditures) END AS payout_ratio_fcf,
+    capital_expenditures / NULLIF(operating_cash_flow, 0) AS capex_to_ocf,
+    debt_issued - debt_repaid AS net_debt_issuance,
+    operating_cash_flow - capital_expenditures - dividends_paid - share_repurchases AS fcf_after_payouts
+FROM with_flows;
+
 -- Recreating views drops their grants. Re-grant read access to the dashboard role when it exists
 -- (managed hosts such as Neon create it separately), so a refresh never silently breaks the app.
 DO $$
@@ -260,7 +383,8 @@ BEGIN
     IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'dashboard_reader') THEN
         GRANT USAGE ON SCHEMA analytics TO dashboard_reader;
         GRANT SELECT ON analytics.v_annual_metrics, analytics.v_quarterly_metrics,
-                        analytics.v_peer_comparison, analytics.v_data_quality TO dashboard_reader;
+                        analytics.v_peer_comparison, analytics.v_data_quality, analytics.v_ltm_metrics
+                        TO dashboard_reader;
     END IF;
 END
 $$;

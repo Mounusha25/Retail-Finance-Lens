@@ -25,6 +25,8 @@ Kroger's latest fiscal year net-sales growth of 0.4% ranked 3 of 4; operating ma
 | TGT | 2026-01-31 | -2.0% | 4.9% | 1.8× | $2.8B | 6.0× | 2.5 days |
 | WMT | 2026-01-31 | 4.7% | 4.2% | 1.9× | $14.9B | 9.3× | 3.3 days |
 
+On a trailing-twelve-month basis, every company is measured over the four quarters ending between Jul 31 and Aug 30, 2026, which removes the gap between Costco's August year-end and the January year-ends of the others: COST 10.1% growth, 3.9% operating margin, $9.4B free cash flow; KR 1.6% growth, 1.4% operating margin, $2.4B free cash flow; TGT 1.6% growth, 5.6% operating margin, $4.5B free cash flow; WMT 6.1% growth, 4.4% operating margin, $13.5B free cash flow.
+
 *Periods reflect each issuer's fiscal calendar. Target's and Kroger's years ended 2026-01-31 are issuer FY2025; Walmart labels the same ending date FY2026. Costco's latest year ended 2026-08-30.*
 
 ---
@@ -66,6 +68,12 @@ Kroger's latest fiscal year net-sales growth of 0.4% ranked 3 of 4; operating ma
 COST earned a 41.4% ROIC and 28.4% return on equity (3.0% net margin × 3.6× asset turnover × 2.6× equity multiplier); WMT earned a 16.8% ROIC and 23.0% return on equity (3.1% net margin × 2.6× asset turnover × 2.9× equity multiplier); TGT earned a 15.0% ROIC and 24.0% return on equity (3.5% net margin × 1.8× asset turnover × 3.8× equity multiplier); KR earned a 8.3% ROIC and 14.3% return on equity (0.7% net margin × 2.9× asset turnover × 7.2× equity multiplier).
 
 **Implication.** ROIC isolates what the operating business earns on debt plus equity, while the DuPont split shows whether return on equity comes from margin, asset productivity, or balance-sheet leverage. A high ROE supported mainly by a larger equity multiplier deserves more scrutiny than one supported by margin or turnover. Invested capital here excludes operating leases, which understates the capital base of the store-heavy peers.
+
+### 7. Capital allocation: payouts are funded differently across the peers
+
+COST paid $16.4B in dividends and $3.6B in buybacks over 5 fiscal years (59% of free cash flow) and left $14.1B unallocated; KR paid $3.8B in dividends and $9.6B in buybacks over 5 fiscal years (102% of free cash flow) and overspent operating cash flow by $0.3B; TGT paid $9.5B in dividends and $11.2B in buybacks over 5 fiscal years (141% of free cash flow) and overspent operating cash flow by $6.0B; WMT paid $32.6B in dividends and $35.1B in buybacks over 5 fiscal years (103% of free cash flow) and overspent operating cash flow by $1.9B.
+
+**Implication.** Payouts above free cash flow are sustainable only while balance-sheet capacity or cash on hand covers the gap, so the useful question is how much of the payout is discretionary buyback versus a committed dividend. Buybacks flex with conditions; dividends are sticky. A company that spends more than its operating cash flow on capex and payouts together is drawing on cash or debt, which also explains rising leverage in the DuPont decomposition. Costco's fiscal 2024 includes a one-off special dividend.
 
 ---
 

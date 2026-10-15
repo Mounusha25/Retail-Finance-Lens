@@ -138,6 +138,29 @@ concepts:
       - {taxonomy: us-gaap, concept: PaymentsToAcquirePropertyPlantAndEquipment, priority: 10}
       - {taxonomy: us-gaap, concept: PaymentsForAdditionsToPropertyPlantAndEquipment, priority: 20}
       - {taxonomy: us-gaap, concept: PaymentsToAcquireProductiveAssets, priority: 30, company: KR}
+  dividends_paid:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      - {taxonomy: us-gaap, concept: PaymentsOfDividendsCommonStock, priority: 10}
+      - {taxonomy: us-gaap, concept: PaymentsOfDividends, priority: 20}
+      - {taxonomy: us-gaap, concept: DividendsCommonStockCash, priority: 30}
+  share_repurchases:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      - {taxonomy: us-gaap, concept: PaymentsForRepurchaseOfCommonStock, priority: 10}
+  debt_issued:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      - {taxonomy: us-gaap, concept: ProceedsFromIssuanceOfLongTermDebt, priority: 10}
+  debt_repaid:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      - {taxonomy: us-gaap, concept: RepaymentsOfLongTermDebt, priority: 10}
+      - {taxonomy: us-gaap, concept: RepaymentsOfLongTermDebtAndCapitalSecurities, priority: 20}
   investing_cash_flow:
     period_type: duration
     aliases:

@@ -6,7 +6,7 @@ An auditable financial-analysis portfolio project comparing Walmart, Target, Cos
 
 **Live dashboard:** <https://retailfinance-analytics.streamlit.app/>
 
-The repository contains the data pipeline, PostgreSQL analytical model, validation checks, eight-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
+The repository contains the data pipeline, PostgreSQL analytical model, validation checks, nine-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
 
 ![Architecture overview](docs/assets/architecture.svg)
 
@@ -102,14 +102,15 @@ See [data dictionary](docs/data_dictionary.md) for all facts and formulas.
 
 A dark, equity-research-style workspace with a live ticker tape (latest sales growth, operating margin and ROIC with year-over-year change) on every page.
 
-1. **Executive overview** — analyst verdict, transparent composite scorecard with adjustable pillar weights, pillar leaders with sparklines, and a rank heatmap.
+1. **Executive overview** — a trailing-12-month (aligned) or fiscal-year basis, analyst verdict, transparent composite scorecard with adjustable pillar weights, pillar leaders with sparklines, and a rank heatmap.
 2. **Peer comparison** — five-year growth, margin, liquidity, and cash trends, plus a five-year range ("football field") view.
 3. **Inventory & working capital** — DIO, payable days, growth gaps, and cash conversion cycle.
 4. **Returns & DuPont** — ROIC, return on equity, and the margin × turnover × leverage decomposition.
-5. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
-6. **Company trends** — five annual periods or twelve quarters with filing lineage.
-7. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
-8. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
+5. **Capital allocation** — operating cash flow through capex, dividends and buybacks, and payout versus free cash flow.
+6. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
+7. **Company trends** — five annual periods or twelve quarters with filing lineage.
+8. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
+9. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
 
 **Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within five pillars (growth, profitability, efficiency, cash, returns) and combined with weights you can change. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
 

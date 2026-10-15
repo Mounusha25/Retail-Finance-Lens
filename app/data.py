@@ -11,6 +11,7 @@ VIEW_NAMES = {
     "annual": "analytics.v_annual_metrics",
     "quarterly": "analytics.v_quarterly_metrics",
     "peer": "analytics.v_peer_comparison",
+    "ltm": "analytics.v_ltm_metrics",
     "quality": "analytics.v_data_quality",
 }
 

@@ -21,7 +21,7 @@ def test_schema_and_analytics_views_install_idempotently():
             text("SELECT count(*) FROM information_schema.views WHERE table_schema = 'analytics'")
         ).scalar_one()
     assert tables == 7
-    assert views == 4
+    assert views == 5
 
 
 @pytest.mark.skipif(not os.getenv("TEST_DATABASE_URL"), reason="TEST_DATABASE_URL is not configured")
@@ -42,7 +42,7 @@ def test_dashboard_reader_keeps_view_access_after_reinstall():
         granted = connection.execute(
             text(
                 "SELECT bool_and(has_table_privilege('dashboard_reader', 'analytics.' || v, 'SELECT')) "
-                "FROM unnest(ARRAY['v_annual_metrics','v_quarterly_metrics','v_peer_comparison','v_data_quality']) AS v"
+                "FROM unnest(ARRAY['v_annual_metrics','v_quarterly_metrics','v_peer_comparison','v_data_quality','v_ltm_metrics']) AS v"
             )
         ).scalar_one()
     assert granted is True

@@ -26,6 +26,11 @@ FLOW_CONCEPTS = {
     "financing_cash_flow",
     "fx_effect_on_cash",
     "net_change_in_cash",
+    "income_tax_expense",
+    "dividends_paid",
+    "share_repurchases",
+    "debt_issued",
+    "debt_repaid",
 }
 
 

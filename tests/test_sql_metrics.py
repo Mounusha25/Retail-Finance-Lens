@@ -34,11 +34,13 @@ FACTS = {
         "current_debt": 10, "long_term_debt_noncurrent": 40, "short_term_borrowings": 5,
         "total_assets": 700, "total_equity": 220, "stockholders_equity": 210,
         "income_tax_expense": 15,
+        "dividends_paid": 12, "share_repurchases": 8, "debt_issued": 30, "debt_repaid": 10,
     },
 }
 DURATION = {
     "net_sales", "membership_other_revenue", "cost_of_sales", "operating_income",
     "net_income", "operating_cash_flow", "capital_expenditures", "income_tax_expense",
+    "dividends_paid", "share_repurchases", "debt_issued", "debt_repaid",
 }
 FISCAL_DAYS = {YEAR_1: 366, YEAR_2: 365}
 
@@ -178,3 +180,138 @@ def test_returns_are_null_without_prior_period(seeded):
     ).mappings().one()
     assert row["roic"] is None
     assert row["return_on_equity"] is None
+
+
+def test_capital_allocation_metrics(seeded):
+    row = _latest(seeded, "ZZA")
+    assert row["shareholder_payouts"] == 20
+    assert row["payout_ratio_fcf"] == pytest.approx(20 / 60)
+    assert row["capex_to_ocf"] == pytest.approx(30 / 90)
+    assert row["net_debt_issuance"] == 20
+    assert row["fcf_after_payouts"] == 40
+
+
+# --- trailing twelve months -------------------------------------------------------------------
+
+QUARTER_ENDS = [
+    (date(2024, 1, 1), date(2024, 3, 31), 91),
+    (date(2024, 4, 1), date(2024, 6, 30), 91),
+    (date(2024, 7, 1), date(2024, 9, 30), 92),
+    (date(2024, 10, 1), date(2024, 12, 31), 92),
+    (date(2025, 1, 1), date(2025, 3, 31), 90),
+    (date(2025, 4, 1), date(2025, 6, 30), 91),
+    (date(2025, 7, 1), date(2025, 9, 30), 92),
+    (date(2025, 10, 1), date(2025, 12, 31), 92),
+]
+PRIOR_SALES, LATEST_SALES = [100, 100, 100, 100], [110, 110, 120, 120]
+LATEST_FLOWS = {
+    "operating_income": 10, "net_income": 8, "income_tax_expense": 2, "operating_cash_flow": 15,
+    "capital_expenditures": 5, "dividends_paid": 3, "share_repurchases": 2,
+}
+BALANCES = {
+    date(2025, 12, 31): {
+        "inventory": 50, "cash_and_cash_equivalents": 30, "current_debt": 100, "long_term_debt_noncurrent": 0,
+        "total_equity": 300, "stockholders_equity": 290, "total_assets": 700,
+    },
+    date(2024, 12, 31): {
+        "inventory": 40, "cash_and_cash_equivalents": 20, "current_debt": 90, "long_term_debt_noncurrent": 0,
+        "total_equity": 260, "stockholders_equity": 250, "total_assets": 600,
+    },
+}
+
+
+def _insert(connection, company_id, ticker, concept, value, start, end, kind, days):
+    connection.execute(
+        text(
+            """
+            INSERT INTO financial_facts (
+                company_id, accession_number, natural_key_hash, canonical_concept, taxonomy, source_concept,
+                raw_value, normalized_value, unit, period_start, period_end, period_kind, fiscal_days,
+                is_53_week, fiscal_end_year, form, filed_at, dimensions, dimension_hash, is_derived, source_url
+            ) VALUES (
+                :cid, :acc, :hash, :concept, 'us-gaap', :concept, :v, :v, 'USD', :start, :end, :kind, :days,
+                false, :fy, '10-Q', :end, '{}', '', false, 'https://example.test/filing'
+            )
+            """
+        ),
+        {
+            "cid": company_id, "acc": f"{ticker}-{end}", "hash": f"{ticker}-{concept}-{end}-{kind}",
+            "concept": concept, "v": value, "start": start, "end": end, "kind": kind, "days": days, "fy": end.year,
+        },
+    )
+
+
+@pytest.fixture()
+def ltm_connection():
+    engine = make_engine(os.environ["TEST_DATABASE_URL"])
+    initialize_database(engine)
+    connection = engine.connect()
+    transaction = connection.begin()
+    try:
+        # ZZL is complete; ZZG lacks capex in one of the four latest quarters.
+        for ticker, skip_capex_in in (("ZZL", None), ("ZZG", date(2025, 6, 30))):
+            company_id = connection.execute(
+                text("INSERT INTO companies (cik, ticker, name, currency) VALUES (:c, :t, :n, 'USD') RETURNING id"),
+                {"c": f"88{ticker}"[:10], "t": ticker, "n": f"Test {ticker}"},
+            ).scalar_one()
+            for index, (start, end, days) in enumerate(QUARTER_ENDS):
+                latest = index >= 4
+                sales = (LATEST_SALES if latest else PRIOR_SALES)[index % 4]
+                values = {"net_sales": sales, "total_revenue": sales, "cost_of_sales": sales * 0.8}
+                if latest:
+                    values.update(LATEST_FLOWS)
+                for concept, value in values.items():
+                    if concept == "capital_expenditures" and end == skip_capex_in:
+                        continue
+                    _insert(connection, company_id, ticker, concept, value, start, end, "quarterly", days)
+            for end, balances in BALANCES.items():
+                for concept, value in balances.items():
+                    _insert(connection, company_id, ticker, concept, value, None, end, "instant", None)
+        yield connection
+    finally:
+        transaction.rollback()
+        connection.close()
+
+
+def _ltm(connection, ticker):
+    row = connection.execute(
+        text("SELECT * FROM analytics.v_ltm_metrics WHERE ticker = :t"), {"t": ticker}
+    ).mappings().one()
+    return {k: float(v) if isinstance(v, Decimal) else v for k, v in row.items()}
+
+
+def test_ltm_sums_the_latest_four_quarters(ltm_connection):
+    row = _ltm(ltm_connection, "ZZL")
+    assert row["period_end"] == date(2025, 12, 31)
+    assert row["is_complete"] is True
+    assert row["fiscal_days"] == 365
+    assert row["net_sales"] == 460
+    assert row["prior_net_sales"] == 400
+    assert row["revenue_growth"] == pytest.approx(0.15)
+    assert row["cost_of_sales"] == pytest.approx(368)
+    assert row["gross_margin"] == pytest.approx(0.20)
+    assert row["operating_margin"] == pytest.approx(40 / 460)
+    assert row["free_cash_flow"] == 40
+    assert row["fcf_margin"] == pytest.approx(40 / 460)
+    assert row["shareholder_payouts"] == 20
+    assert row["payout_ratio_fcf"] == pytest.approx(0.5)
+
+
+def test_ltm_balance_sheet_metrics_average_with_the_year_ago_quarter(ltm_connection):
+    row = _ltm(ltm_connection, "ZZL")
+    assert row["inventory_turnover"] == pytest.approx(368 / 45)
+    assert row["days_inventory_outstanding"] == pytest.approx(45 / 368 * 365)
+    tax_rate = 8 / (32 + 8)
+    assert row["effective_tax_rate"] == pytest.approx(tax_rate)
+    average_capital = ((100 + 300 - 30) + (90 + 260 - 20)) / 2
+    assert row["roic"] == pytest.approx(40 * (1 - tax_rate) / average_capital)
+    assert row["return_on_equity"] == pytest.approx(32 / ((290 + 250) / 2))
+
+
+def test_ltm_is_null_rather_than_partial_when_a_quarter_is_missing(ltm_connection):
+    row = _ltm(ltm_connection, "ZZG")
+    assert row["net_sales"] == 460          # complete flows still report
+    assert row["capital_expenditures"] is None
+    assert row["free_cash_flow"] is None
+    assert row["fcf_margin"] is None
+    assert row["payout_ratio_fcf"] is None

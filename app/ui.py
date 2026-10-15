@@ -34,7 +34,8 @@ PERCENT_METRICS = {
 CURRENCY_METRICS = {
     "net_sales", "total_revenue", "operating_income", "net_income",
     "operating_cash_flow", "free_cash_flow", "inventory",
-    "cash_and_cash_equivalents", "total_debt",
+    "cash_and_cash_equivalents", "total_debt", "shareholder_payouts", "dividends_paid", "share_repurchases",
+    "net_debt_issuance", "fcf_after_payouts", "capital_expenditures",
 }
 
 LABELS = {
@@ -64,9 +65,11 @@ LABELS = {
     "effective_tax_rate": "Effective tax rate",
 }
 
-PERCENT_METRICS.add("fcf_margin")
+PERCENT_METRICS.update({"fcf_margin", "payout_ratio_fcf", "capex_to_ocf"})
 LABELS.update({
     "fcf_margin": "FCF margin",
+    "payout_ratio_fcf": "Payout / FCF",
+    "capex_to_ocf": "Capex / OCF",
     "roic": "ROIC",
     "return_on_equity": "Return on equity",
     "asset_turnover": "Asset turnover",
@@ -217,10 +220,11 @@ _NAV = [
     ("pages/1_Peer_Comparison.py", "Peer benchmarking"),
     ("pages/2_Working_Capital.py", "Working capital"),
     ("pages/3_Returns_and_DuPont.py", "Returns & DuPont"),
-    ("pages/4_Financial_Statements.py", "Financial statements"),
-    ("pages/5_Company_Trends.py", "Company detail"),
-    ("pages/6_Exploratory_Analysis.py", "Exploratory analysis"),
-    ("pages/7_Methodology_and_Data_Quality.py", "Data quality & methods"),
+    ("pages/4_Capital_Allocation.py", "Capital allocation"),
+    ("pages/5_Financial_Statements.py", "Financial statements"),
+    ("pages/6_Company_Trends.py", "Company detail"),
+    ("pages/7_Exploratory_Analysis.py", "Exploratory analysis"),
+    ("pages/8_Methodology_and_Data_Quality.py", "Data quality & methods"),
 ]
 
 

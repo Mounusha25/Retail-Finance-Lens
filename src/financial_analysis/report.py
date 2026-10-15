@@ -95,6 +95,42 @@ def _kroger_paragraph(peer: pd.DataFrame) -> str:
     return "Kroger's latest fiscal year " + "; ".join(pieces) + "." if pieces else ""
 
 
+def _capital_allocation_paragraph(annual: pd.DataFrame) -> str:
+    needed = ["operating_cash_flow", "capital_expenditures", "dividends_paid", "share_repurchases"]
+    pieces = []
+    for ticker, company in annual.dropna(subset=needed).sort_values("period_end").groupby("ticker"):
+        window = company.tail(5)
+        ocf = window["operating_cash_flow"].sum()
+        capex = window["capital_expenditures"].sum()
+        dividends = window["dividends_paid"].sum()
+        buybacks = window["share_repurchases"].sum()
+        fcf = ocf - capex
+        remaining = ocf - capex - dividends - buybacks
+        payout = f"{(dividends + buybacks) / fcf:.0%} of free cash flow" if fcf > 0 else "payouts with no positive free cash flow"
+        gap = "left " + _billions(remaining) + " unallocated" if remaining >= 0 else "overspent operating cash flow by " + _billions(-remaining)
+        pieces.append(
+            f"{ticker} paid {_billions(dividends)} in dividends and {_billions(buybacks)} in buybacks over {len(window)} fiscal years "
+            f"({payout}) and {gap}"
+        )
+    return "; ".join(pieces) + "." if pieces else "Dividend and buyback data are unavailable."
+
+
+def _ltm_paragraph(ltm: pd.DataFrame) -> str:
+    if ltm.empty or not bool(ltm["is_complete"].fillna(False).all()):
+        return ""
+    ends = pd.to_datetime(ltm["period_end"])
+    parts = [
+        f"{row['ticker']} {_percent(row['revenue_growth'])} growth, {_percent(row['operating_margin'])} operating margin, "
+        f"{_billions(row['free_cash_flow'])} free cash flow"
+        for _, row in ltm.sort_values("ticker").iterrows()
+    ]
+    return (
+        f"On a trailing-twelve-month basis, every company is measured over the four quarters ending between {ends.min():%b %d} and "
+        f"{ends.max():%b %d, %Y}, which removes the gap between Costco's August year-end and the January year-ends of the others: "
+        + "; ".join(parts) + "."
+    )
+
+
 def generate_report(settings: Settings, output: Path | None = None) -> Path:
     output = output or PROJECT_ROOT / "reports" / "v1_findings.md"
     with make_engine(settings.database_url).connect() as connection:
@@ -116,6 +152,7 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             connection,
         )
         quality = pd.read_sql(text("SELECT * FROM analytics.v_data_quality"), connection)
+        ltm = pd.read_sql(text("SELECT * FROM analytics.v_ltm_metrics ORDER BY ticker"), connection)
     if peer.empty:
         raise RuntimeError("No analytical periods are loaded; run the refresh command first")
 
@@ -169,6 +206,8 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
         )
 
     lines.extend([
+        "",
+        _ltm_paragraph(ltm),
         "",
         "*Periods reflect each issuer's fiscal calendar. Target's and Kroger's years ended 2026-01-31 are issuer FY2025; Walmart labels "
         "the same ending date FY2026. Costco's latest year ended 2026-08-30.*",
@@ -268,6 +307,18 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             "return on equity comes from margin, asset productivity, or balance-sheet leverage. A high ROE supported mainly by a larger "
             "equity multiplier deserves more scrutiny than one supported by margin or turnover. Invested capital here excludes operating "
             "leases, which understates the capital base of the store-heavy peers."
+        ),
+        "",
+        "### 7. Capital allocation: payouts are funded differently across the peers",
+        "",
+        _capital_allocation_paragraph(annual),
+        "",
+        (
+            "**Implication.** Payouts above free cash flow are sustainable only while balance-sheet capacity or cash on hand covers "
+            "the gap, so the useful question is how much of the payout is discretionary buyback versus a committed dividend. "
+            "Buybacks flex with conditions; dividends are sticky. A company that spends more than its operating cash flow on capex "
+            "and payouts together is drawing on cash or debt, which also explains rising leverage in the DuPont decomposition. Costco's "
+            "fiscal 2024 includes a one-off special dividend."
         ),
         "",
         "---",

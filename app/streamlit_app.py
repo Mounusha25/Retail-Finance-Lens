@@ -31,9 +31,29 @@ page_setup(
     ),
 )
 
-peer = load_or_stop("peer").sort_values("ticker").reset_index(drop=True)
 annual = latest_periods(load_or_stop("annual"), 5)
 quality = load_or_stop("quality")
+fiscal_peer = load_or_stop("peer").sort_values("ticker").reset_index(drop=True)
+
+basis = st.segmented_control(
+    "Comparison basis", ["Trailing 12 months (aligned)", "Latest fiscal year"], default="Trailing 12 months (aligned)",
+    help="Fiscal years end at different times (Costco in August, the others in January). The trailing-12-month basis "
+         "measures every company over the same twelve months.",
+)
+ltm_peer = load_or_stop("ltm").sort_values("ticker").reset_index(drop=True)
+use_ltm = basis != "Latest fiscal year"
+if use_ltm and not bool(ltm_peer["is_complete"].fillna(False).all()):
+    st.warning("Some companies lack four complete quarters; showing the latest fiscal year for everyone instead.")
+    use_ltm = False
+peer = ltm_peer if use_ltm else fiscal_peer
+if use_ltm:
+    ends = pd.to_datetime(peer["period_end"])
+    st.caption(
+        f"Trailing twelve months ending {ends.min():%b %d} to {ends.max():%b %d, %Y}: the latest four reported quarters "
+        "for each company, so every figure covers the same period within a few weeks."
+    )
+else:
+    st.caption("Latest completed fiscal years end on different dates (Costco in August, the others in January).")
 
 with st.expander("Scoring weights", expanded=False):
     st.caption(
@@ -60,7 +80,8 @@ reasoning = (
     (f"It ranks first on {', '.join(pillar_wins)}. " if pillar_wins else "It does not rank first on any single pillar; its lead is breadth. ")
     + (f"The runner-up, {runner_up['ticker']}, scores {runner_up['Composite']:.0f}. " if runner_up is not None else "")
     + f"{top['ticker']}'s weakest pillar is {weakest_pillar} ({scores.loc[scores['ticker'] == top['ticker'], weakest_pillar].iloc[0]:.0f}). "
-    + "Scores are relative to this four-company set, not to the market, and reflect each issuer's latest completed fiscal year."
+    + "Scores are relative to this four-company set, not to the market, and reflect "
+    + ("trailing twelve months to each issuer's latest quarter." if use_ltm else "each issuer's latest completed fiscal year.")
 )
 verdict(headline, reasoning)
 
@@ -82,6 +103,10 @@ for pillar, (metric, label, detail) in spec.items():
     if ticker is None:
         continue
     history = latest_and_prior(annual_scored[annual_scored["ticker"] == ticker], metric).iloc[0]
+    if use_ltm:
+        scored_peer = with_fcf_margin(peer).set_index("ticker")
+        history = {"latest": scored_peer.loc[ticker, metric], "change": None, "history": []}
+        detail = f"{detail} · trailing 12 months"
     text, direction = _fmt_delta(metric, history["change"])
     # For the cash cycle a decrease is the favourable direction, so flip the colour semantics.
     if metric == "cash_conversion_cycle" and direction in {"up", "down"}:
