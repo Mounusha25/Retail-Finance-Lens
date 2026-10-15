@@ -237,18 +237,13 @@ hr { border-color:var(--line); }
 """
 
 _NAV = [
-    ("streamlit_app.py", "Executive overview"),
-    ("pages/1_Peer_Comparison.py", "Peer benchmarking"),
-    ("pages/2_Working_Capital.py", "Working capital"),
-    ("pages/3_Returns_and_DuPont.py", "Returns & DuPont"),
-    ("pages/4_Why_Returns_Moved.py", "Why returns moved"),
-    ("pages/5_Capital_Allocation.py", "Capital allocation"),
-    ("pages/6_Leverage_and_Coverage.py", "Leverage & coverage"),
-    ("pages/7_Forecast_and_Valuation.py", "Forecast & valuation"),
-    ("pages/8_Financial_Statements.py", "Financial statements"),
-    ("pages/9_Company_Trends.py", "Company detail"),
-    ("pages/10_Exploratory_Analysis.py", "Exploratory analysis"),
-    ("pages/11_Methodology_and_Data_Quality.py", "Data quality & methods"),
+    ("streamlit_app.py", "Overview"),
+    ("pages/1_Performance.py", "Performance"),
+    ("pages/2_Returns.py", "Returns"),
+    ("pages/3_Capital_and_Balance_Sheet.py", "Capital & balance sheet"),
+    ("pages/4_Company.py", "Company"),
+    ("pages/5_Valuation.py", "Valuation"),
+    ("pages/6_Methodology_and_Data_Quality.py", "Data quality & methods"),
 ]
 
 

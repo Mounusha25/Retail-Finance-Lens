@@ -99,7 +99,7 @@ measured over the same twelve months.
 
 ## Forecast and valuation (illustrative)
 
-The Forecast & Valuation page and report finding 11 use a driver-based ten-year discounted-cash-flow model
+The Valuation page and report finding 11 use a driver-based ten-year discounted-cash-flow model
 (`app/valuation.py`). It is a scenario analysis, not a price target: the application holds no market prices or share counts.
 
 | Driver | Default |

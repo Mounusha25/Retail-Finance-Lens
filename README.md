@@ -6,7 +6,7 @@ An auditable financial-analysis portfolio project comparing Walmart, Target, Cos
 
 **Live dashboard:** <https://retailfinance-analytics.streamlit.app/>
 
-The repository contains the data pipeline, PostgreSQL analytical model, validation checks, twelve-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
+The repository contains the data pipeline, PostgreSQL analytical model, validation checks, seven-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
 
 ![Architecture overview](docs/assets/architecture.svg)
 
@@ -100,20 +100,17 @@ See [data dictionary](docs/data_dictionary.md) for all facts and formulas.
 
 ## Dashboard
 
-A dark, equity-research-style workspace with a live ticker tape (latest sales growth, operating margin and ROIC with year-over-year change) on every page.
+A dark, equity-research-style workspace with a ticker tape (latest sales growth, operating margin and ROIC, with year-over-year change) on every page. Seven pages, each answering one question:
 
-1. **Executive overview** — a trailing-12-month (aligned) or fiscal-year basis, analyst verdict, transparent composite scorecard with adjustable pillar weights, pillar leaders with sparklines, and a rank heatmap.
-2. **Peer comparison** — five-year growth, margin, liquidity, and cash trends, plus a five-year range ("football field") view.
-3. **Inventory & working capital** — DIO, payable days, growth gaps, and cash conversion cycle.
-4. **Returns & DuPont** — ROIC, return on equity, and the margin × turnover × leverage decomposition.
-5. **Why returns moved** — incremental ROIC, incremental margin and operating leverage, a net-income-to-cash-flow bridge, an exact attribution of each year's ROE change, and the reinvestment profile.
-6. **Capital allocation** — operating cash flow through capex, dividends and buybacks, and payout versus free cash flow.
-7. **Leverage & coverage** — EBITDA, net debt, interest coverage, and ROIC adjusted for operating leases.
-8. **Forecast & valuation** — an illustrative ten-year DCF with bear/base/bull cases, adjustable assumptions, a sensitivity grid and a reverse DCF against a market value you enter.
-9. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
-10. **Company trends** — five annual periods or twelve quarters with filing lineage.
-11. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
-12. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
+| Page | Question | Contents |
+|---|---|---|
+| **Overview** | Who leads, and how robust is that? | Trailing-12-month (aligned) or fiscal-year basis, analyst verdict, composite scorecard with adjustable pillar weights, pillar leaders, rank heatmap, ranking robustness |
+| **Performance** | How do they compare? | *Growth & margins* (with a five-year range view) · *Working capital* · *Positioning* |
+| **Returns** | Are returns good, and why? | *ROIC & DuPont* · *Why returns moved* (incremental ROIC, operating leverage, net-income-to-cash bridge, exact ROE attribution, reinvestment) |
+| **Capital & balance sheet** | Where does the cash go, and how strong is the balance sheet? | *Capital allocation* (capex, dividends, buybacks, payout vs FCF) · *Leverage & coverage* (EBITDA, net debt, interest coverage, lease-adjusted ROIC) |
+| **Company** | What does one company look like? | *Trends* (annual or quarterly, with filing lineage) · *Statements* (income statement, balance sheet, cash flow, common-size, revenue-to-net-income bridge) |
+| **Valuation** | What do the fundamentals support? | Illustrative ten-year DCF with bear/base/bull cases, adjustable assumptions, sensitivity grid and a reverse DCF against a market value you enter |
+| **Data quality & methods** | Can I trust it? | Definitions, lineage policy, validation results, fiscal calendars |
 
 **Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within six pillars (growth, profitability, efficiency, cash, returns, balance sheet) and combined with weights you can change. A robustness panel re-runs the ranking under named and random weightings and reports how often each company leads. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
 
