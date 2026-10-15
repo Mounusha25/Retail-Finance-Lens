@@ -23,6 +23,7 @@ FACTS = {
         "inventory": 100, "accounts_receivable_net_current": 50, "accounts_payable_current": 80,
         "current_debt": 10, "long_term_debt_noncurrent": 40, "cash_and_cash_equivalents": 40,
         "total_assets": 600, "total_equity": 200, "stockholders_equity": 190,
+        "operating_lease_liability": 60,
     },
     YEAR_2: {
         "net_sales": 1100, "membership_other_revenue": 100, "cost_of_sales": 880,
@@ -35,12 +36,15 @@ FACTS = {
         "total_assets": 700, "total_equity": 220, "stockholders_equity": 210,
         "income_tax_expense": 15,
         "dividends_paid": 12, "share_repurchases": 8, "debt_issued": 30, "debt_repaid": 10,
+        "depreciation_amortization": 20, "interest_paid": 6,
+        "operating_lease_liability": 80, "operating_lease_discount_rate": 0.05,
     },
 }
 DURATION = {
     "net_sales", "membership_other_revenue", "cost_of_sales", "operating_income",
     "net_income", "operating_cash_flow", "capital_expenditures", "income_tax_expense",
     "dividends_paid", "share_repurchases", "debt_issued", "debt_repaid",
+    "depreciation_amortization", "interest_paid",
 }
 FISCAL_DAYS = {YEAR_1: 366, YEAR_2: 365}
 
@@ -207,6 +211,7 @@ PRIOR_SALES, LATEST_SALES = [100, 100, 100, 100], [110, 110, 120, 120]
 LATEST_FLOWS = {
     "operating_income": 10, "net_income": 8, "income_tax_expense": 2, "operating_cash_flow": 15,
     "capital_expenditures": 5, "dividends_paid": 3, "share_repurchases": 2,
+    "depreciation_amortization": 4, "interest_paid": 2,
 }
 BALANCES = {
     date(2025, 12, 31): {
@@ -315,3 +320,39 @@ def test_ltm_is_null_rather_than_partial_when_a_quarter_is_missing(ltm_connectio
     assert row["free_cash_flow"] is None
     assert row["fcf_margin"] is None
     assert row["payout_ratio_fcf"] is None
+
+
+def test_ebitda_leverage_and_coverage(seeded):
+    row = _latest(seeded, "ZZA")
+    assert row["ebitda"] == 80                       # operating income 60 + D&A 20
+    assert row["ebitda_margin"] == pytest.approx(80 / 1200)
+    assert row["net_debt"] == 5                      # debt 55 - cash 50
+    assert row["net_debt_to_ebitda"] == pytest.approx(5 / 80)
+    assert row["interest_coverage"] == pytest.approx(60 / 6)
+
+
+def test_lease_adjusted_roic_adds_back_implied_lease_interest(seeded):
+    row = _latest(seeded, "ZZA")
+    tax_rate = 15 / 55
+    implied_interest = (80 + 60) / 2 * 0.05          # average lease liability x disclosed rate
+    adjusted_capital = ((225 + 80) + (210 + 60)) / 2
+    assert row["lease_adjusted_debt"] == 55 + 80
+    assert row["implied_lease_interest"] == pytest.approx(implied_interest)
+    assert row["lease_adjusted_nopat"] == pytest.approx((60 + implied_interest) * (1 - tax_rate))
+    assert row["lease_adjusted_roic"] == pytest.approx((60 + implied_interest) * (1 - tax_rate) / adjusted_capital)
+
+
+def test_negative_ebitda_gives_no_leverage_multiple(seeded):
+    row = seeded.execute(
+        text("SELECT net_debt_to_ebitda, ebitda FROM analytics.v_annual_metrics WHERE ticker = 'ZZB' AND period_end = :d"),
+        {"d": YEAR_1},
+    ).mappings().one()
+    assert row["net_debt_to_ebitda"] is None          # no operating income or D&A in year 1
+
+
+def test_ltm_ebitda_net_debt_and_coverage(ltm_connection):
+    row = _ltm(ltm_connection, "ZZL")
+    assert row["ebitda"] == 56                        # 40 operating income + 16 D&A
+    assert row["net_debt"] == 70                      # debt 100 - cash 30
+    assert row["net_debt_to_ebitda"] == pytest.approx(70 / 56)
+    assert row["interest_coverage"] == pytest.approx(40 / 8)

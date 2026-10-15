@@ -31,6 +31,8 @@ FLOW_CONCEPTS = {
     "share_repurchases",
     "debt_issued",
     "debt_repaid",
+    "depreciation_amortization",
+    "interest_paid",
 }
 
 
@@ -43,6 +45,7 @@ class Alias:
     priority: int
     company: str | None = None
     normalize: str | None = None
+    unit: str = "USD"
 
 
 @dataclass(frozen=True)
@@ -100,6 +103,7 @@ class ConceptRegistry:
                         priority=int(item.get("priority", 100)),
                         company=item.get("company"),
                         normalize=definition.get("normalize"),
+                        unit=str(definition.get("unit", "USD")),
                     )
                 )
         return cls(aliases)
@@ -161,7 +165,7 @@ def extract_company_facts(
         if not concept:
             continue
         for unit, entries in concept.get("units", {}).items():
-            if unit not in {"USD", "usd"}:
+            if unit.lower() != alias.unit.lower():
                 continue
             for entry in entries:
                 form = str(entry.get("form", ""))
@@ -195,7 +199,7 @@ def extract_company_facts(
                         source_concept=alias.concept,
                         raw_value=str(entry["val"]),
                         normalized_value=normalized,
-                        unit="USD",
+                        unit=alias.unit,
                         decimals=str(entry["decimals"]) if entry.get("decimals") is not None else None,
                         period_start=start,
                         period_end=end,

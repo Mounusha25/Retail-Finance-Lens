@@ -96,6 +96,7 @@ spec = {
     "Efficiency": ("cash_conversion_cycle", "Cash conversion cycle", "Lower is better"),
     "Cash": ("fcf_margin", "FCF margin", "Free cash flow on revenue"),
     "Returns": ("roic", "ROIC", "After-tax operating profit on invested capital"),
+    "Balance sheet": ("net_debt_to_ebitda", "Net debt / EBITDA", "Lower is better; negative is net cash"),
 }
 annual_scored = with_fcf_margin(annual)
 for pillar, (metric, label, detail) in spec.items():
@@ -109,7 +110,7 @@ for pillar, (metric, label, detail) in spec.items():
         detail = f"{detail} · trailing 12 months"
     text, direction = _fmt_delta(metric, history["change"])
     # For the cash cycle a decrease is the favourable direction, so flip the colour semantics.
-    if metric == "cash_conversion_cycle" and direction in {"up", "down"}:
+    if metric in {"cash_conversion_cycle", "net_debt_to_ebitda"} and direction in {"up", "down"}:
         direction = "down" if direction == "up" else "up"
     cards.append({
         "label": f"{pillar} leader · {label}",
@@ -140,6 +141,8 @@ rank_heatmap(
         ("current_ratio", "Current ratio", True),
         ("roic", "ROIC", True),
         ("return_on_equity", "ROE", True),
+        ("net_debt_to_ebitda", "Net debt / EBITDA", False),
+        ("interest_coverage", "Interest coverage", True),
     ],
 )
 st.caption("Kroger's cost of sales excludes depreciation and rent-type items, so its gross margin is not strictly comparable.")

@@ -10,6 +10,7 @@ PILLARS: dict[str, list[tuple[str, bool]]] = {
     "Efficiency": [("inventory_turnover", True), ("cash_conversion_cycle", False)],
     "Cash": [("fcf_margin", True)],
     "Returns": [("roic", True)],
+    "Balance sheet": [("net_debt_to_ebitda", False), ("interest_coverage", True)],
 }
 DEFAULT_WEIGHTS: dict[str, float] = {name: 20.0 for name in PILLARS}
 

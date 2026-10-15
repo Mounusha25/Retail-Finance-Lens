@@ -2,7 +2,7 @@
 
 ## Analyst report — Walmart, Target, Costco, and Kroger
 
-**Prepared:** 2026-10-14  
+**Prepared:** 2026-10-15  
 **Decision question:** Which retailer is growing profitably, managing inventory efficiently, and converting profit into cash?  
 **Scope:** Latest five completed annual periods and twelve standalone quarters per company, based on latest-known SEC filings.
 
@@ -74,6 +74,12 @@ COST earned a 41.4% ROIC and 28.4% return on equity (3.0% net margin × 3.6× as
 COST paid $16.4B in dividends and $3.6B in buybacks over 5 fiscal years (59% of free cash flow) and left $14.1B unallocated; KR paid $3.8B in dividends and $9.6B in buybacks over 5 fiscal years (102% of free cash flow) and overspent operating cash flow by $0.3B; TGT paid $9.5B in dividends and $11.2B in buybacks over 5 fiscal years (141% of free cash flow) and overspent operating cash flow by $6.0B; WMT paid $32.6B in dividends and $35.1B in buybacks over 5 fiscal years (103% of free cash flow) and overspent operating cash flow by $1.9B.
 
 **Implication.** Payouts above free cash flow are sustainable only while balance-sheet capacity or cash on hand covers the gap, so the useful question is how much of the payout is discretionary buyback versus a committed dividend. Buybacks flex with conditions; dividends are sticky. A company that spends more than its operating cash flow on capex and payouts together is drawing on cash or debt, which also explains rising leverage in the DuPont decomposition. Costco's fiscal 2024 includes a one-off special dividend.
+
+### 8. Leverage, coverage and leases
+
+COST has net cash of $14.0B, interest coverage 113.4×, and lease adjustment lowers ROIC from 41.4% to 37.1%; KR has net debt of $12.5B (2.4× EBITDA), interest coverage 2.3×, and lease adjustment lowers ROIC from 8.3% to 7.2%; TGT has net debt of $11.0B (1.3× EBITDA), interest coverage 8.1×, and lease adjustment lowers ROIC from 15.0% to 13.6%; WMT has net debt of $34.0B (0.8× EBITDA), interest coverage 10.7×, and lease adjustment lowers ROIC from 16.8% to 15.6%.
+
+**Implication.** Net debt to EBITDA and interest coverage describe capacity to keep returning capital; they matter most for the companies whose payouts already exceed free cash flow. Operating leases are a debt-like obligation that reported ROIC ignores, so lease-adjusted ROIC is the fairer comparison between store-heavy peers and a warehouse-club model with fewer leased sites. Coverage uses cash interest paid, which can be lumpy, and is unavailable on a trailing basis when quarterly filings omit it.
 
 ---
 

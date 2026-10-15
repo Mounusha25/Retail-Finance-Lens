@@ -161,6 +161,29 @@ concepts:
     aliases:
       - {taxonomy: us-gaap, concept: RepaymentsOfLongTermDebt, priority: 10}
       - {taxonomy: us-gaap, concept: RepaymentsOfLongTermDebtAndCapitalSecurities, priority: 20}
+  depreciation_amortization:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      - {taxonomy: us-gaap, concept: DepreciationDepletionAndAmortization, priority: 10}
+      - {taxonomy: us-gaap, concept: DepreciationAmortizationAndAccretionNet, priority: 20, company: WMT}
+  interest_paid:
+    period_type: duration
+    normalize: absolute
+    aliases:
+      # Gross cash interest where tagged (Kroger); otherwise interest paid net of capitalized interest.
+      - {taxonomy: us-gaap, concept: InterestPaid, priority: 10}
+      - {taxonomy: us-gaap, concept: InterestPaidNet, priority: 20}
+  operating_lease_liability:
+    period_type: instant
+    aliases:
+      - {taxonomy: us-gaap, concept: OperatingLeaseLiability, priority: 10}
+  # Weighted-average discount rate of operating leases, a decimal (0.047 = 4.7%).
+  operating_lease_discount_rate:
+    period_type: instant
+    unit: pure
+    aliases:
+      - {taxonomy: us-gaap, concept: OperatingLeaseWeightedAverageDiscountRatePercent, priority: 10}
   investing_cash_flow:
     period_type: duration
     aliases:

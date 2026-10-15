@@ -6,7 +6,7 @@ An auditable financial-analysis portfolio project comparing Walmart, Target, Cos
 
 **Live dashboard:** <https://retailfinance-analytics.streamlit.app/>
 
-The repository contains the data pipeline, PostgreSQL analytical model, validation checks, nine-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
+The repository contains the data pipeline, PostgreSQL analytical model, validation checks, ten-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
 
 ![Architecture overview](docs/assets/architecture.svg)
 
@@ -107,12 +107,13 @@ A dark, equity-research-style workspace with a live ticker tape (latest sales gr
 3. **Inventory & working capital** — DIO, payable days, growth gaps, and cash conversion cycle.
 4. **Returns & DuPont** — ROIC, return on equity, and the margin × turnover × leverage decomposition.
 5. **Capital allocation** — operating cash flow through capex, dividends and buybacks, and payout versus free cash flow.
-6. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
-7. **Company trends** — five annual periods or twelve quarters with filing lineage.
-8. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
-9. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
+6. **Leverage & coverage** — EBITDA, net debt, interest coverage, and ROIC adjusted for operating leases.
+7. **Financial statements** — income statement, balance sheet and cash flow in analyst layout with YoY change, a common-size view, and a revenue-to-net-income bridge.
+8. **Company trends** — five annual periods or twelve quarters with filing lineage.
+9. **Exploratory analysis** — growth/margin positioning, operating-cycle relationships, and quarterly distributions.
+10. **Methodology & data quality** — definitions, validation outcomes, fiscal calendars, and missing facts.
 
-**Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within five pillars (growth, profitability, efficiency, cash, returns) and combined with weights you can change. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
+**Scoring.** Each metric is ranked across the peer set (best = 100, worst = 0), averaged within six pillars (growth, profitability, efficiency, cash, returns, balance sheet) and combined with weights you can change. Ranking, not min-max scaling, keeps one outlier from dominating, and a missing metric is excluded rather than scored as zero. Scores are relative to the four companies, not to the market.
 
 The app reads only `analytics.v_annual_metrics`, `analytics.v_quarterly_metrics`, `analytics.v_peer_comparison`, and `analytics.v_data_quality`. Financial formulas do not live in dashboard code.
 

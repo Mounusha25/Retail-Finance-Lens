@@ -131,6 +131,29 @@ def _ltm_paragraph(ltm: pd.DataFrame) -> str:
     )
 
 
+def _leverage_paragraph(peer: pd.DataFrame) -> str:
+    pieces = []
+    for _, row in peer.sort_values("ticker").iterrows():
+        if pd.isna(row.get("net_debt")):
+            continue
+        stance = (
+            f"net cash of {_billions(-row['net_debt'])}"
+            if row["net_debt"] < 0
+            else f"net debt of {_billions(row['net_debt'])} ({_number(row['net_debt_to_ebitda'], '×')} EBITDA)"
+        )
+        coverage = (
+            f", interest coverage {_number(row['interest_coverage'], '×')}"
+            if pd.notna(row.get("interest_coverage")) else ""
+        )
+        leases = ""
+        if pd.notna(row.get("roic")) and pd.notna(row.get("lease_adjusted_roic")):
+            leases = (
+                f", and lease adjustment lowers ROIC from {_percent(row['roic'])} to {_percent(row['lease_adjusted_roic'])}"
+            )
+        pieces.append(f"{row['ticker']} has {stance}{coverage}{leases}")
+    return "; ".join(pieces) + "." if pieces else "Leverage data are unavailable."
+
+
 def generate_report(settings: Settings, output: Path | None = None) -> Path:
     output = output or PROJECT_ROOT / "reports" / "v1_findings.md"
     with make_engine(settings.database_url).connect() as connection:
@@ -319,6 +342,18 @@ def generate_report(settings: Settings, output: Path | None = None) -> Path:
             "Buybacks flex with conditions; dividends are sticky. A company that spends more than its operating cash flow on capex "
             "and payouts together is drawing on cash or debt, which also explains rising leverage in the DuPont decomposition. Costco's "
             "fiscal 2024 includes a one-off special dividend."
+        ),
+        "",
+        "### 8. Leverage, coverage and leases",
+        "",
+        _leverage_paragraph(peer),
+        "",
+        (
+            "**Implication.** Net debt to EBITDA and interest coverage describe capacity to keep returning capital; they matter "
+            "most for the companies whose payouts already exceed free cash flow. Operating leases are a debt-like obligation that "
+            "reported ROIC ignores, so lease-adjusted ROIC is the fairer comparison between store-heavy peers and a "
+            "warehouse-club model with fewer leased sites. Coverage uses cash interest paid, which can be lumpy, and is unavailable "
+            "on a trailing basis when quarterly filings omit it."
         ),
         "",
         "---",

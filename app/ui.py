@@ -35,7 +35,8 @@ CURRENCY_METRICS = {
     "net_sales", "total_revenue", "operating_income", "net_income",
     "operating_cash_flow", "free_cash_flow", "inventory",
     "cash_and_cash_equivalents", "total_debt", "shareholder_payouts", "dividends_paid", "share_repurchases",
-    "net_debt_issuance", "fcf_after_payouts", "capital_expenditures",
+    "net_debt_issuance", "fcf_after_payouts", "capital_expenditures", "ebitda", "net_debt", "lease_adjusted_debt",
+    "implied_lease_interest", "operating_lease_liability",
 }
 
 LABELS = {
@@ -65,10 +66,18 @@ LABELS = {
     "effective_tax_rate": "Effective tax rate",
 }
 
-PERCENT_METRICS.update({"fcf_margin", "payout_ratio_fcf", "capex_to_ocf"})
+PERCENT_METRICS.update({"fcf_margin", "payout_ratio_fcf", "capex_to_ocf", "ebitda_margin", "lease_adjusted_roic"})
 LABELS.update({
     "fcf_margin": "FCF margin",
     "payout_ratio_fcf": "Payout / FCF",
+    "ebitda": "EBITDA",
+    "ebitda_margin": "EBITDA margin",
+    "net_debt": "Net debt",
+    "net_debt_to_ebitda": "Net debt / EBITDA",
+    "interest_coverage": "Interest coverage",
+    "lease_adjusted_roic": "Lease-adjusted ROIC",
+    "lease_adjusted_debt": "Lease-adjusted debt",
+    "operating_lease_liability": "Operating lease liability",
     "capex_to_ocf": "Capex / OCF",
     "roic": "ROIC",
     "return_on_equity": "Return on equity",
@@ -221,10 +230,11 @@ _NAV = [
     ("pages/2_Working_Capital.py", "Working capital"),
     ("pages/3_Returns_and_DuPont.py", "Returns & DuPont"),
     ("pages/4_Capital_Allocation.py", "Capital allocation"),
-    ("pages/5_Financial_Statements.py", "Financial statements"),
-    ("pages/6_Company_Trends.py", "Company detail"),
-    ("pages/7_Exploratory_Analysis.py", "Exploratory analysis"),
-    ("pages/8_Methodology_and_Data_Quality.py", "Data quality & methods"),
+    ("pages/5_Leverage_and_Coverage.py", "Leverage & coverage"),
+    ("pages/6_Financial_Statements.py", "Financial statements"),
+    ("pages/7_Company_Trends.py", "Company detail"),
+    ("pages/8_Exploratory_Analysis.py", "Exploratory analysis"),
+    ("pages/9_Methodology_and_Data_Quality.py", "Data quality & methods"),
 ]
 
 

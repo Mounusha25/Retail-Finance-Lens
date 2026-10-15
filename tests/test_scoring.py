@@ -69,3 +69,21 @@ def test_pillar_leaders_and_latest_and_prior():
     result = latest_and_prior(annual, "operating_margin").set_index("ticker")
     assert result.loc["A", "change"] == pytest.approx(0.01)
     assert pd.isna(result.loc["B", "change"])
+
+
+def test_balance_sheet_pillar_rewards_lower_leverage_and_higher_coverage():
+    frame = _peer()
+    frame["net_debt_to_ebitda"] = [-1.0, 0.5, 2.0]   # A is net cash: best
+    frame["interest_coverage"] = [50.0, 10.0, 3.0]
+    scores = score_peers(frame).set_index("ticker")
+    assert scores.loc["A", "Balance sheet"] == 100
+    assert scores.loc["C", "Balance sheet"] == 0
+    assert scores.loc["B", "Balance sheet"] == 50
+
+
+def test_balance_sheet_pillar_uses_the_metric_it_has():
+    frame = _peer()
+    frame["net_debt_to_ebitda"] = [1.0, 2.0, 3.0]
+    frame["interest_coverage"] = [None, None, None]  # e.g. interest paid not reported
+    scores = score_peers(frame).set_index("ticker")
+    assert scores.loc["A", "Balance sheet"] == 100   # leverage alone scores the pillar

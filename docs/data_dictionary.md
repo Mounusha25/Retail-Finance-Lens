@@ -44,6 +44,14 @@ Every fact includes the accession number, taxonomy and source concept, raw and n
 | Net debt issuance | Long-term debt issued − long-term debt repaid (excludes short-term borrowing and lease principal) |
 | FCF after payouts | Operating cash flow − capex − dividends − buybacks |
 
+| EBITDA | Operating income + depreciation and amortization (cash-flow statement line) |
+| Net debt | Total debt − cash and cash equivalents (short-term investments are not netted) |
+| Net debt / EBITDA | Net debt ÷ EBITDA; null when EBITDA is not positive; negative means net cash |
+| Interest coverage | Operating income ÷ cash interest paid (gross `InterestPaid` where tagged, otherwise `InterestPaidNet`) |
+| Lease-adjusted debt | Total debt + operating lease liability |
+| Implied lease interest | Average operating lease liability × the weighted-average operating-lease discount rate the company discloses |
+| Lease-adjusted ROIC | (Operating income + implied lease interest) × (1 − tax rate) ÷ average (invested capital + operating lease liability) |
+
 DuPont identity: net margin × asset turnover × equity multiplier = return on equity. Invested capital excludes operating-lease liabilities; Target's debt tag includes finance leases.
 
 Missing inputs produce a null metric. The pipeline does not infer an undisclosed component as zero.

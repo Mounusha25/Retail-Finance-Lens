@@ -63,7 +63,11 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'dividends_paid') AS dividends_paid,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'share_repurchases') AS share_repurchases,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_issued') AS debt_issued,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_repaid') AS debt_repaid
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_repaid') AS debt_repaid,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'depreciation_amortization') AS depreciation_amortization,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'interest_paid') AS interest_paid,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_liability') AS operating_lease_liability,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate
     FROM annual_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -89,6 +93,7 @@ WITH ranked AS (
         lag(accounts_receivable_net_current) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_receivables,
         lag(accounts_payable_current) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_accounts_payable,
         lag(invested_capital) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_invested_capital,
+        lag(operating_lease_liability) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_operating_lease_liability,
         lag(total_assets) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_total_assets,
         lag(stockholders_equity) OVER (PARTITION BY company_id ORDER BY period_end) AS prior_stockholders_equity
     FROM capital
@@ -132,7 +137,25 @@ SELECT
          THEN (dividends_paid + share_repurchases) / (operating_cash_flow - capital_expenditures) END AS payout_ratio_fcf,
     capital_expenditures / NULLIF(operating_cash_flow, 0) AS capex_to_ocf,
     debt_issued - debt_repaid AS net_debt_issuance,
-    operating_cash_flow - capital_expenditures - dividends_paid - share_repurchases AS fcf_after_payouts
+    operating_cash_flow - capital_expenditures - dividends_paid - share_repurchases AS fcf_after_payouts,
+    operating_income + depreciation_amortization AS ebitda,
+    (operating_income + depreciation_amortization) / NULLIF(total_revenue, 0) AS ebitda_margin,
+    current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0) - cash_and_cash_equivalents AS net_debt,
+    CASE WHEN operating_income + depreciation_amortization > 0
+         THEN (current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0) - cash_and_cash_equivalents)
+              / (operating_income + depreciation_amortization) END AS net_debt_to_ebitda,
+    operating_income / NULLIF(interest_paid, 0) AS interest_coverage,
+    current_debt + long_term_debt_noncurrent + COALESCE(short_term_borrowings, 0) + operating_lease_liability
+      AS lease_adjusted_debt,
+    -- Implied interest inside operating lease cost = average lease liability x disclosed discount rate.
+    (operating_lease_liability + prior_operating_lease_liability) / 2 * operating_lease_discount_rate
+      AS implied_lease_interest,
+    (operating_income + (operating_lease_liability + prior_operating_lease_liability) / 2 * operating_lease_discount_rate)
+      * (1 - effective_tax_rate) AS lease_adjusted_nopat,
+    (operating_income + (operating_lease_liability + prior_operating_lease_liability) / 2 * operating_lease_discount_rate)
+      * (1 - effective_tax_rate)
+      / NULLIF((invested_capital + operating_lease_liability
+                + prior_invested_capital + prior_operating_lease_liability) / 2, 0) AS lease_adjusted_roic
 FROM returns;
 
 CREATE OR REPLACE VIEW analytics.v_quarterly_metrics AS
@@ -192,7 +215,11 @@ WITH ranked AS (
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'dividends_paid') AS dividends_paid,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'share_repurchases') AS share_repurchases,
         max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_issued') AS debt_issued,
-        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_repaid') AS debt_repaid
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'debt_repaid') AS debt_repaid,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'depreciation_amortization') AS depreciation_amortization,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'interest_paid') AS interest_paid,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_liability') AS operating_lease_liability,
+        max(r.normalized_value) FILTER (WHERE r.canonical_concept = 'operating_lease_discount_rate') AS operating_lease_discount_rate
     FROM quarter_periods p
     JOIN companies c ON c.id = p.company_id
     LEFT JOIN ranked r
@@ -302,6 +329,8 @@ WITH q AS (
         CASE WHEN count(share_repurchases) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(share_repurchases) FILTER (WHERE rn BETWEEN 1 AND 4) END AS share_repurchases,
         CASE WHEN count(debt_issued) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(debt_issued) FILTER (WHERE rn BETWEEN 1 AND 4) END AS debt_issued,
         CASE WHEN count(debt_repaid) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(debt_repaid) FILTER (WHERE rn BETWEEN 1 AND 4) END AS debt_repaid,
+        CASE WHEN count(depreciation_amortization) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(depreciation_amortization) FILTER (WHERE rn BETWEEN 1 AND 4) END AS depreciation_amortization,
+        CASE WHEN count(interest_paid) FILTER (WHERE rn BETWEEN 1 AND 4) = 4 THEN sum(interest_paid) FILTER (WHERE rn BETWEEN 1 AND 4) END AS interest_paid,
         CASE WHEN count(net_sales) FILTER (WHERE rn BETWEEN 5 AND 8) = 4 THEN sum(net_sales) FILTER (WHERE rn BETWEEN 5 AND 8) END AS prior_net_sales,
         CASE WHEN count(total_revenue) FILTER (WHERE rn BETWEEN 5 AND 8) = 4 THEN sum(total_revenue) FILTER (WHERE rn BETWEEN 5 AND 8) END AS prior_total_revenue,
         max(inventory) FILTER (WHERE rn = 1) AS inventory,
@@ -373,7 +402,13 @@ SELECT
          THEN (dividends_paid + share_repurchases) / (operating_cash_flow - capital_expenditures) END AS payout_ratio_fcf,
     capital_expenditures / NULLIF(operating_cash_flow, 0) AS capex_to_ocf,
     debt_issued - debt_repaid AS net_debt_issuance,
-    operating_cash_flow - capital_expenditures - dividends_paid - share_repurchases AS fcf_after_payouts
+    operating_cash_flow - capital_expenditures - dividends_paid - share_repurchases AS fcf_after_payouts,
+    operating_income + depreciation_amortization AS ebitda,
+    (operating_income + depreciation_amortization) / NULLIF(total_revenue, 0) AS ebitda_margin,
+    total_debt - cash_and_cash_equivalents AS net_debt,
+    CASE WHEN operating_income + depreciation_amortization > 0
+         THEN (total_debt - cash_and_cash_equivalents) / (operating_income + depreciation_amortization) END AS net_debt_to_ebitda,
+    operating_income / NULLIF(interest_paid, 0) AS interest_coverage
 FROM with_flows;
 
 -- Recreating views drops their grants. Re-grant read access to the dashboard role when it exists

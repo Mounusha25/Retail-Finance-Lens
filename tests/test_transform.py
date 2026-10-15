@@ -209,3 +209,25 @@ def test_kroger_fiscal_labels_and_sixteen_week_first_quarter():
     # Kroger's first quarter is 16 weeks (112 days) and must classify as a standalone quarter.
     kind, days, _ = classify_period("10-Q", date(2025, 2, 2), date(2025, 5, 24))
     assert (kind, days) == ("quarterly", 112)
+
+
+def test_pure_unit_concepts_are_extracted_as_decimals():
+    payload = {"facts": {"us-gaap": {
+        "OperatingLeaseWeightedAverageDiscountRatePercent": {"units": {"pure": [
+            {"end": "2026-01-31", "val": 0.048, "accn": "0000056873-26-000010", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-31"}
+        ]}},
+        "OperatingLeaseLiability": {"units": {"USD": [
+            {"end": "2026-01-31", "val": 7126000000, "accn": "0000056873-26-000010", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-31"}
+        ]}},
+    }}}
+    facts = {f.canonical_concept: f for f in extract_company_facts(payload, "KR", "0000056873", REGISTRY)}
+    assert facts["operating_lease_discount_rate"].normalized_value == Decimal("0.048")
+    assert facts["operating_lease_discount_rate"].unit == "pure"
+    assert facts["operating_lease_liability"].unit == "USD"
+
+
+def test_usd_concepts_ignore_non_usd_units():
+    payload = {"facts": {"us-gaap": {"NetIncomeLoss": {"units": {"EUR": [
+        {"start": "2025-02-01", "end": "2026-01-31", "val": 5, "accn": "x", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2026-03-31"}
+    ]}}}}}
+    assert extract_company_facts(payload, "WMT", "0000104169", REGISTRY) == []
