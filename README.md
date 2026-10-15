@@ -4,7 +4,7 @@ An auditable financial-analysis portfolio project comparing Walmart, Target, Cos
 
 > Which retailers are growing profitably, how efficiently are they managing inventory, and is their profit translating into cash?
 
-**Live dashboard:** <https://retailfinance-analytics.streamlit.app/>
+**Live dashboard:** <https://retailfinance-analytics.streamlit.app/> · **[Case study](docs/case_study.md)**
 
 The repository contains the data pipeline, PostgreSQL analytical model, validation checks, seven-page Streamlit dashboard, automated refresh workflow, and evidence-backed report generator.
 

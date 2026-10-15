@@ -13,3 +13,4 @@ data/staged/**
 !data/staged/.gitkeep
 .DS_Store
 *.egg-info/
+private/
